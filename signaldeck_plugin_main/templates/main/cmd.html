@@ -1,0 +1,13 @@
+{% from "core/_utils.html" import renderButton %}
+
+{{ renderButton("start",displayData) }}
+{{ renderButton("stop",displayData) }}
+<br/>
+{% for state in displayData.getStates() %}
+<div class="state-container">
+    <div class="state-row">
+        <div class="state-log-date">{{ displayData.formatDate(state["date"]) }}</div>
+        <div class="state-log-msg">{{ state["msg"] }} </div>
+    </div>
+</div>
+{% endfor %}

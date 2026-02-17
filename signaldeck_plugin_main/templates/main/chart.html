@@ -1,0 +1,30 @@
+<div class="state-container">
+<div class="state-row">
+<div class="state-buttons">
+{% for button in displayData.getStateChangeButtonData() %}
+<div id="{{ button['id'] }}" class="action-element-button" data-actionhash="{{ displayData.hash }}"
+    data-params='{{ button["get_params"]|safe }}'> {{ button["text"] }} </div>
+{% endfor %}
+</div>
+</div>
+    {% if not displayData.isAggregation() %}
+    <div class="state-row head">
+        <div class="state-label wide">{{ displayData.date }}</div>
+    </div>
+    {% endif %}
+
+<canvas
+  id="{{ displayData.getDivID() }}"
+  class="state-chart"
+  data-label="{{ displayData.label }}"
+  data-unit="{{ displayData.unit }}"
+  data-xvals='{{ displayData.xVals|tojson }}'
+  data-yvals='{{ displayData.yVals|tojson }}'
+    data-ymin="{{ displayData.ymin }}"
+data-ymax="{{ displayData.ymax }}"
+  data-agg="{{ displayData.getAggregationUnit() }}"
+  data-type="{{ displayData.type }}"
+>
+</canvas>
+
+</div>

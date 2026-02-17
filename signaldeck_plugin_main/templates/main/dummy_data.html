@@ -1,0 +1,6 @@
+<div class="state-container">
+    <div>/run?actionhash={{ displayData.hash }}</div>
+{% for valName in displayData.getValues().keys() %}
+<div>{{ valName }}: {{ displayData.getValue(valName) }}</div>
+{% endfor %}
+</div>
