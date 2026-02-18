@@ -4,16 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "signaldeck-plugin-main"
-version = "0.1.0"
+version = "0.1.1"
 description = "Main plugin for SignalDeck"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-  "signaldeck-sdk>=0.1.0",
-  "signaldeck-ui>=0.1.0",
+  "signaldeck-sdk>=0.1.1",
+  "signaldeck-ui>=0.1.1",
   "flask>=3.0",
   "paho-mqtt>=1.6.1",
-  "pymodbus>=3.8.6",
+  "pymodbus==3.8.6",
   "jsonpath-ng>=1.6.1",
   "requests>=2.32.3"
 ]
