@@ -1,0 +1,11 @@
+/* Charts */
+.state-chart{
+  width: 100% !important;
+  max-width: 100%;
+  display: block;
+  margin-top: 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  padding: 8px;
+}

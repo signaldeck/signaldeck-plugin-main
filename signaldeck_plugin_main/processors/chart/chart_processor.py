@@ -24,6 +24,12 @@ class Chart(DisplayProcessor):
 
     def getTemplate(self,value):
         return "main/chart.html"
+        
+    def getAdditionalJsFiles(self,value):
+        return [("main","vendor/chartjs/chart-4.5.0-umd-min.js")]
+    
+    def getAdditionalCssFiles(self,value):
+        return [("main","css/chart/style.css")]
 
     def reduceData(self,data,lastN):
         self.logger.debug(f'lastN={lastN}')

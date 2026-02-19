@@ -27,5 +27,6 @@ include = ["signaldeck_plugin_main*"]
 
 [tool.setuptools.package-data]
 signaldeck_plugin_main = [
-  "templates/**/*"
+  "templates/**/*",
+  "static/**/*"
 ]
