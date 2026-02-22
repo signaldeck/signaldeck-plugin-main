@@ -1,0 +1,25 @@
+{
+  "date_format": "$DATE_FORMAT$",
+  "defaults": {
+    "val_a": 1.234,
+    "val_b": 2
+  },
+  "vars": {
+    "float": [
+      "val_a"
+    ],
+    "int": [
+      "val_b"
+    ]
+  },
+  "export": {
+    "values": [
+      {
+        "val_a": "val_a"
+      },
+      {
+        "val_b": "val_b"
+      }
+    ]
+  }
+}

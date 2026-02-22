@@ -2,7 +2,6 @@ import asyncio
 
 import logging, datetime,json,time
 from signaldeck_sdk import Processor
-from flask import render_template
 from pathlib import Path
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ConnectionException

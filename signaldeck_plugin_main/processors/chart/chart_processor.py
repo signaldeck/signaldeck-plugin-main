@@ -128,7 +128,7 @@ class Chart(DisplayProcessor):
         else:
             df=self.getDf(actionHash,offset=offset,lastN=lastN)
         if df is None:
-            return ChartDisplayData(actionHash,self.config.get(CONFIG_OPTION_AGGREGATION,None)) \
+            return ChartDisplayData(self.ctx, actionHash,self.config.get(CONFIG_OPTION_AGGREGATION,None)) \
                     .withPlotType(self.config.get(CONFIG_OPTION_TYPE,DEFAULT_CONFIG_OPTION_TYPE)).withXValues([]).withYValues([]).withLabel("").withUnit("").withOffset(0).withLastNOption(self.config.get("lastN",None)).withCurrentOption(self.config.get("withCurrent",False))
         yVals=df.values
         dateName = df.index.name
@@ -137,7 +137,7 @@ class Chart(DisplayProcessor):
 
                 
 
-        return ChartDisplayData(actionHash,self.config.get(CONFIG_OPTION_AGGREGATION,None)) \
+        return ChartDisplayData(self.ctx, actionHash,self.config.get(CONFIG_OPTION_AGGREGATION,None)) \
                 .withDate(str(df[dateName].iloc[0].date())) \
                 .withXValues(list(xVals)) \
                 .withYValues(list(yVals)) \

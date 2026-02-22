@@ -1,6 +1,14 @@
-<div class="state-container">
+{% from "ui/_utils.html" import renderButton, renderInputField %}
+
+<div class="state-container"> 
     <div>/run?actionhash={{ displayData.hash }}</div>
 {% for valName in displayData.getValues().keys() %}
-<div>{{ valName }}: {{ displayData.getValue(valName) }}</div>
+<div class="state-row">
+    <div class="state-label">{{ valName }}</div>
+    <div class="state-value">
+    {{ renderInputField(valName+"_field", "text", displayData.getValue(valName), displayData) }} {{ renderButton(valName,displayData) }} 
+    </div>
+
+</div>
 {% endfor %}
 </div>

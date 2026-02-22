@@ -2,7 +2,6 @@ import logging
 import numpy as np
 import os
 from signaldeck_sdk import Processor
-from flask import render_template
 import datetime
 import paho.mqtt.client as mqtt 
 from pathlib import Path
@@ -80,5 +79,5 @@ class home_connect_client(Processor):
         if self.currentVals[value] is None:
             return ""
         if "render_state" in self.topicConfig[value]:
-            return render_template(self.topicConfig[value]["render_state"],values=self.currentVals[value],i18n=i18nFromMapping(self.topicConfig[value]["mapping"]))
+            return self.ctx.render(self.topicConfig[value]["render_state"],values=self.currentVals[value],i18n=i18nFromMapping(self.topicConfig[value]["mapping"]))
         return self.currentVals[value]

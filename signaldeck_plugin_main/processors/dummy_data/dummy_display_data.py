@@ -2,18 +2,26 @@ from signaldeck_sdk import DisplayData
 
 
 class DummyDisplayData(DisplayData):
-    def __init__(self,hash,params):
-        super().__init__(hash)
-        self.currParams=params
+
+    def withData(self,data):
+        self.values= data
+        return self
 
     def getValues(self):
-        return self.currParams
+        return self.values
     
     def getValue(self,name):
-        return self.currParams.get(name,None)
+        return self.values.get(name,None)
     
     def getStateChangeButtonData(self):
         return []
     
     def getExportFields(self):
         return []
+    
+    def buttons(self):
+        res = {}
+        for key in self.values.keys():
+            newButton = {"name": key, "text": "save", "params": {key: "@"+key+"_field"}}
+            res[key] = newButton
+        return res

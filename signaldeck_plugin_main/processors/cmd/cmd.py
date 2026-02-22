@@ -5,8 +5,8 @@ from signaldeck_sdk import Cmd
 from signaldeck_sdk import CmdResult
 
 class CmdDisplayData(DisplayData):
-    def __init__(self,hash,params):
-        super().__init__(hash)
+    def __init__(self,ctx, hash,params):
+        super().__init__(ctx, hash)
         self.cmd:Cmd=None
         self.currParams=params
     
@@ -51,7 +51,7 @@ class CmdProcessor(DisplayProcessor):
         self.logger = logging.getLogger(__name__)
 
     def getDisplayData(self,value,actionHash,**kwargs):
-        res = CmdDisplayData(actionHash,params=kwargs)
+        res = CmdDisplayData(self.ctx, actionHash,params=kwargs)
         scriptName = value
         if type(scriptName) is list:
             scriptName = scriptName[0]

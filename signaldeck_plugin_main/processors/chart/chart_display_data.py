@@ -4,8 +4,8 @@ import numpy as np
 
 class ChartDisplayData(DisplayData):
 
-    def __init__(self,actionHash,aggregationConfig):
-        super().__init__(actionHash)
+    def __init__(self,ctx,actionHash,aggregationConfig):
+        super().__init__(ctx, actionHash)
         self.aggregationConfig=aggregationConfig
         self.withCurrentButton=False
 
