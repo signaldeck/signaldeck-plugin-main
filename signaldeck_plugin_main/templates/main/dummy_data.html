@@ -8,7 +8,15 @@
     <div class="state-value">
     {{ renderInputField(valName+"_field", "text", displayData.getValue(valName), displayData) }} {{ renderButton(valName,displayData) }} 
     </div>
-
 </div>
+{% if displayData.hasPerDayField(valName) %}
+<div class="state-row">
+    <div class="state-label"></div>
+    <div class="state-value">
+    Change per Day: {{ renderInputField(valName+"_change_per_day_field", "text", displayData.getChangePerDayValue(valName), displayData) }} {{ renderButton(valName+"_change_per_day",displayData) }} 
+    </div>
+</div>
+
+{% endif %} 
 {% endfor %}
 </div>

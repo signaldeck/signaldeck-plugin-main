@@ -67,15 +67,21 @@ class ChartDisplayData(DisplayData):
             return ""
         return self.aggregationConfig.get("unit","day")
 
-    def getStateChangeButtonData(self):
+    def buttons(self) -> dict:
         if self.aggregationConfig is not None:
-            return []
-        res= [{"name":"prev","id":"prev"+self.hash,"actionhash":self.hash,"get_params":json.dumps({"offset":self.offset+1}),"text":"<"},
-        {"name":"next","id":"next"+self.hash,"actionhash":self.hash,"get_params":json.dumps({"offset":self.offset-1}),"text":">"}]
+            return {}
+        res= {"prev":{
+                "name":"prev",
+                "params":{"offset":self.offset+1},"text":self.ctx.t("signaldeck_plugin_main.chart.button.prev")
+                },
+            "next":{
+                "name":"next","params":{"offset":self.offset-1},"text":self.ctx.t("signaldeck_plugin_main.chart.button.next")}}
         if self.withLastButton:
-            res.append({"name":"lastN","id":"lastN"+self.hash,"actionhash":self.hash,"get_params":json.dumps({"offset":self.offset,"lastN":self.lastN}),"text":"letzte"})
+            res["lastN"]={
+                "name":"lastN","params":{"offset":self.offset,"lastN":self.lastN},"text":self.ctx.t("signaldeck_plugin_main.chart.button.last_n")}
         if self.withCurrentButton:
-            res.append({"name":"currentValues","id":"currentValues"+self.hash,"actionhash":self.hash,"get_params":json.dumps({"offset":0,"currentValues":True}),"text":"memory"})
+            res["currentValues"]={
+                "name":"currentValues","params":{"offset":0,"currentValues":True},"text":self.ctx.t("signaldeck_plugin_main.chart.button.current_values")}
         return res
 
     def getExportFields(self):

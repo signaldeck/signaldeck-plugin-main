@@ -1,4 +1,9 @@
 {
-    "test_key": "Dies ist ein Test.",
-    "dummy_data_title": "Dummy-Daten"
+  "signaldeck_plugin_main.chart.button.current_values": "Speicher",
+  "signaldeck_plugin_main.chart.button.last_n": "Letzte",
+  "signaldeck_plugin_main.chart.button.next": ">",
+  "signaldeck_plugin_main.chart.button.prev": "<",
+
+  "signaldeck_plugin_main.cmd.button.start": "Start",
+  "signaldeck_plugin_main.cmd.button.stop": "Stopp"
 }

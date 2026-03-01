@@ -15,8 +15,8 @@ class CmdDisplayData(DisplayData):
         return self
 
     def buttons(self):
-        return {"start":{"name":"start","id":"start"+self.hash,"actionhash":self.hash,"get_params":json.dumps({"start":1}),"text":"Start"},
-                "stop":{"name":"stop","id":"stop"+self.hash,"actionhash":self.hash,"get_params":json.dumps({"stop":1}),"text":"Stop"}}
+        return {"start":{"name":"start","params":{"start":1},"text":self.ctx.t("signaldeck_plugin_main.cmd.button.start")},
+                "stop":{"name":"stop","params":{"stop":1},"text":self.ctx.t("signaldeck_plugin_main.cmd.button.stop")}}
 
     def getCSSClass(self,buttonName):
         if buttonName == "start" and self.cmdRes is not None and not self.cmdRes.isFinished():
@@ -25,11 +25,6 @@ class CmdDisplayData(DisplayData):
             return " hide"
         return ""
     
-    def getStateChangeButtonData(self):
-        res = []
-        for button in self.buttons().keys():
-            res.append(self.buttons()[button])
-        return res
 
     def formatDate(self, d):
         return d.strftime("%H:%M:%S")
