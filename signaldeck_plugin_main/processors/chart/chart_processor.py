@@ -26,7 +26,7 @@ class Chart(DisplayProcessor):
         return "main/chart.html"
         
     def getAdditionalJsFiles(self,value):
-        return [("main","vendor/chartjs/chart-4.5.0-umd-min.js")]
+        return [("main","vendor/chartjs/chart-4.5.0-umd-min.js"),("main","js/chart.js")]
     
     def getAdditionalCssFiles(self,value):
         return [("main","css/chart/style.css")]
@@ -151,6 +151,9 @@ class Chart(DisplayProcessor):
 
     def getAdditionalInfoForClient(self,data:ChartDisplayData):
         return {"render_charts":[data.getDivID()]}
+    
+    def getJS_functions_to_call_on_client(self, data:DisplayData):
+        return {data.getDivID(): "initChart"}
     
     def getBoolParams(self):
         return ["currentValues"]
