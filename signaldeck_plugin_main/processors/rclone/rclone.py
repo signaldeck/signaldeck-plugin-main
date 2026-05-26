@@ -4,8 +4,8 @@ import logging, subprocess, json, datetime
 DATE_MACRO="{date}"
 
 class RClone(Processor):
-    def __init__(self,name,config,vP,collect_data):
-        super().__init__(name,config,vP,collect_data)
+    def __init__(self,name,config,ctx,vP,collect_data):
+        super().__init__(name,config,ctx,vP,collect_data)
         self.command=self.config.get("rclone_command",["rclone","rcat"])
         self.logger=logging.getLogger(__name__)
 

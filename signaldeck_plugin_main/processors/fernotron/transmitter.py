@@ -15,8 +15,8 @@ class FernotronTransmitter(Command):
 
 class transmitter(Processor):
 
-    def __init__(self,name,config,vP,collect_data):
-        super().__init__(name,config,vP,collect_data)
+    def __init__(self,name,config,ctx,vP,collect_data):
+        super().__init__(name,config,ctx,vP,collect_data)
         self.command=config["command"]
 
     def process(self,value, actionHash,file=None,count=20):

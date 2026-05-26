@@ -16,8 +16,8 @@ def genInt(inst):
 
 
 class randInt(Processor):
-    def __init__(self,name,config,vP,collect_data):
-        super().__init__(name,config,vP,collect_data)
+    def __init__(self,name,config,ctx,vP,collect_data):
+        super().__init__(name,config,ctx,vP,collect_data)
         self.value=10
         self.logger = logging.getLogger(__name__)
         self.start()
