@@ -8,6 +8,7 @@ class ChartDisplayData(DisplayData):
         super().__init__(ctx, actionHash)
         self.aggregationConfig=aggregationConfig
         self.withCurrentButton=False
+        self.labels=[]
 
 
     def withCurrentOption(self,enable=True):
@@ -15,10 +16,14 @@ class ChartDisplayData(DisplayData):
         return self
 
     def withYValues(self, yVals):
-        self.yVals =  [
-            v.item() if isinstance(v, np.generic) else v
-            for v in yVals
-        ]
+        def normalize(value):
+            if isinstance(value, np.generic):
+                return value.item()
+            if isinstance(value, list):
+                return [normalize(v) for v in value]
+            return value
+
+        self.yVals = normalize(yVals)
         return self
 
     def withXValues(self, xVals):
@@ -31,6 +36,10 @@ class ChartDisplayData(DisplayData):
     
     def withPlotType(self,type):
         self.type=type
+        return self
+
+    def withLabels(self,labels):
+        self.labels = labels
         return self
 
     def withLabel(self,label):

@@ -130,17 +130,29 @@ class Chart(DisplayProcessor):
         if df is None:
             return ChartDisplayData(self.ctx, actionHash,self.config.get(CONFIG_OPTION_AGGREGATION,None)) \
                     .withPlotType(self.config.get(CONFIG_OPTION_TYPE,DEFAULT_CONFIG_OPTION_TYPE)).withXValues([]).withYValues([]).withLabel("").withUnit("").withOffset(0).withLastNOption(self.config.get("lastN",None)).withCurrentOption(self.config.get("withCurrent",False))
-        yVals=df.values
-        dateName = df.index.name
-        df = df.reset_index()
-        xVals=df[dateName].apply(lambda x : x.timestamp()*1000).values
+        dateName = df.index.name or "date"
+        df = df.reset_index().rename(columns={df.index.name: dateName})
+        xVals=df[dateName].apply(lambda x : x.timestamp()*1000).tolist()
 
-                
+        yColumns = [col for col in df.columns if col != dateName]
+        if len(yColumns) == 1:
+            yVals = df[yColumns[0]].tolist()
+            chartLabels = [self.config.get("title","")]
+            xSeries = xVals
+        else:
+            yVals = [df[col].tolist() for col in yColumns]
+            xSeries = [list(xVals) for _ in yColumns]
+            configuredLabels = self.config.get("titles", None)
+            if isinstance(configuredLabels, list) and len(configuredLabels) == len(yColumns):
+                chartLabels = configuredLabels
+            else:
+                chartLabels = yColumns
 
         return ChartDisplayData(self.ctx, actionHash,self.config.get(CONFIG_OPTION_AGGREGATION,None)) \
                 .withDate(str(df[dateName].iloc[0].date())) \
-                .withXValues(list(xVals)) \
-                .withYValues(list(yVals)) \
+                .withXValues(xSeries) \
+                .withYValues(yVals) \
+                .withLabels(chartLabels) \
                 .withLabel(self.config.get("title","")) \
                 .withUnit(self.config.get("unit","")) \
                 .withOffset(offset) \

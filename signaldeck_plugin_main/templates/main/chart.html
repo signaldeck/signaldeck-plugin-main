@@ -18,6 +18,7 @@
   class="state-chart"
   data-label="{{ displayData.label }}"
   data-unit="{{ displayData.unit }}"
+  data-labels='{{ displayData.labels|default([])|tojson }}'
   data-xvals='{{ displayData.xVals|tojson }}'
   data-yvals='{{ displayData.yVals|tojson }}'
     data-ymin="{{ displayData.ymin }}"
