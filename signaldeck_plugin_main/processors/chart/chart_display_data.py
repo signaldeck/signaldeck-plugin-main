@@ -128,13 +128,10 @@ class ChartDisplayData(DisplayData):
     def withOptions(self,optionsOrder,options):
         self.optionsOrder=optionsOrder
         self.options=options
-        print(self.options)
         if len(optionsOrder) > 0:
             if not hasattr(self, "option") or not self.option:
                 self.option= optionsOrder[0]["options"][0]
             o = self.options.get(self.option)
-            print(self.option)
-            print(o)
             self.withLabel(o.get("title","")) 
             self.withUnit(o.get("unit","")) 
             self.withLastNOption(o.get("lastN",None))
