@@ -1,6 +1,5 @@
 import logging
 from signaldeck_sdk import Processor
-import datetime
 import paho.mqtt.client as mqtt 
 from pathlib import Path
 import json
@@ -10,7 +9,7 @@ import pandas as pd
 import datetime
 from signaldeck_sdk import Cmd, Command
 import threading
-from collections import deque
+
 from signaldeck_sdk import PersistData
 from zoneinfo import ZoneInfo 
 
@@ -92,7 +91,7 @@ class mqtt_subscriber(PersistData,Processor):
         self.redirect={}
         self._last_action_time={}
         self.temp_data={}
-        self.memory: dict[str, deque] = {}
+        
         
     def _getRequiredDataStores(self,config=None):
         if not config:  
@@ -152,12 +151,6 @@ class mqtt_subscriber(PersistData,Processor):
             except Exception as err:
                 print("Reconnect schlug fehl:", err)
 
-    def getDfFromMemory(self,topic,fieldName,dateField):
-        if topic not in self.memory:
-            return None
-        res = pd.DataFrame(list(self.memory[topic]))
-        res=res.set_index(dateField)
-        return res[fieldName]
 
 
     def getDateFieldName(self,config):
@@ -170,10 +163,8 @@ class mqtt_subscriber(PersistData,Processor):
         return self.currentVals[topic][fieldName]
 
     def hist(self,topic,fieldName,date=None,days=1,recursive=True,currentValues=False,**params):
-        if currentValues:
-            return self.getDfFromMemory(topic,fieldName,self.getDateFieldName(self.topicConfig[topic]))
-        res= super().hist(fieldName,config=self.topicConfig[topic],date=date,days=days,**params,recursive=False,currentValues=False,topicname=topic)
-        return res
+        return super().hist(fieldName,config=self.topicConfig[topic],date=date,days=days,**params,recursive=False,currentValues=currentValues,topicname=topic)
+
 
     def getDateFormat(self,config=None):
         return "%Y-%m-%dT%H:%M:%S"
@@ -224,10 +215,6 @@ class mqtt_subscriber(PersistData,Processor):
         values=self.currentVals[topic]
         self.logger.debug(f'New data for topic "{topic}": {values}')
         prev_values = self.prev_curVal.get(topic, None)
-        if topic not in self.memory:
-            maxlen = config.get("cacheSize",1000)
-            self.memory[topic] = deque(maxlen=maxlen)
-        self.memory[topic].append(values)
         self.save_data(values, prev_data= prev_values,config=config)
         
 

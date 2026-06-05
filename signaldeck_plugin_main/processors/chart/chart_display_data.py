@@ -8,6 +8,10 @@ class ChartDisplayData(DisplayData):
         super().__init__(ctx, actionHash)
         self.aggregationConfig=aggregationConfig
         self.withCurrentButton=False
+        self.currentValues = False
+        self.lastN=None
+        self.lastN_value=None
+        self.optionsOrder=[]
 
 
     def withCurrentOption(self,enable=True):
@@ -53,7 +57,7 @@ class ChartDisplayData(DisplayData):
         if lastN is None:
             return self
         self.withLastButton=True
-        self.lastN=lastN
+        self.lastN_value=lastN
         return self
 
     def getDivID(self):
@@ -68,21 +72,73 @@ class ChartDisplayData(DisplayData):
         return self.aggregationConfig.get("unit","day")
 
     def buttons(self) -> dict:
-        if self.aggregationConfig is not None:
-            return {}
-        res= {"prev":{
+        newLastN = None
+        if self.lastN == None:
+            newLastN = self.lastN_value
+        res= {
+            "prev": {
                 "name":"prev",
-                "params":{"offset":self.offset+1},"text":self.ctx.t("signaldeck_plugin_main.chart.button.prev")
+                "params":{"offset":self.offset+1},
+                "text":self.ctx.t("signaldeck_plugin_main.chart.button.prev")
                 },
-            "next":{
-                "name":"next","params":{"offset":self.offset-1},"text":self.ctx.t("signaldeck_plugin_main.chart.button.next")}}
-        if self.withLastButton:
-            res["lastN"]={
-                "name":"lastN","params":{"offset":self.offset,"lastN":self.lastN},"text":self.ctx.t("signaldeck_plugin_main.chart.button.last_n")}
-        if self.withCurrentButton:
-            res["currentValues"]={
-                "name":"currentValues","params":{"offset":0,"currentValues":True},"text":self.ctx.t("signaldeck_plugin_main.chart.button.current_values")}
+            "next": {
+                "name":"next",
+                "params":{"offset":self.offset-1},
+                "text":self.ctx.t("signaldeck_plugin_main.chart.button.next")},
+            "lastN": {
+                "name":"lastN",
+                "params":{"lastN":newLastN},
+                "text":self.ctx.t("signaldeck_plugin_main.chart.button.last_n"),
+                "button_active_condition": ("lastN", self.lastN_value)
+            },
+            "currentValues": {
+                "name":"currentValues",
+                "params":{"offset":0,"currentValues":not self.currentValues},
+                "text":self.ctx.t("signaldeck_plugin_main.chart.button.current_values"),
+                "button_active_condition": ("currentValues", True)
+            }  
+        }
+        if hasattr(self,"optionsOrder"):
+            for option_row in self.optionsOrder:
+                for optionName in option_row["options"]:
+                    res[optionName] = {
+                        "name": optionName,
+                        "text": self.options[optionName].get("display_name", optionName),
+                        "button_active_condition": ("option", optionName),
+                        "params": {"option": optionName}
+                    }
         return res
+
+    
+    def showButton(self,name):
+        if self.aggregationConfig is not None:
+            return False
+        if name == "lastN":
+            return self.withLastButton
+        if name == "currentValues":
+            return self.withCurrentButton
+        return True
 
     def getExportFields(self):
         return {}
+    
+    def getStatefullFields(self):
+        return ["offset", "option", "lastN"]
+    
+    def withOptions(self,optionsOrder,options):
+        self.optionsOrder=optionsOrder
+        self.options=options
+        print(self.options)
+        if len(optionsOrder) > 0:
+            if not hasattr(self, "option") or not self.option:
+                self.option= optionsOrder[0]["options"][0]
+            o = self.options.get(self.option)
+            print(self.option)
+            print(o)
+            self.withLabel(o.get("title","")) 
+            self.withUnit(o.get("unit","")) 
+            self.withLastNOption(o.get("lastN",None))
+            self.withYMinMax(o.get("y-range",{}).get("min",None),o.get("y-range",{}).get("max",None)) 
+            self.withPlotType(o.get("type","scatter")) 
+            self.withCurrentOption(o.get("withCurrent",False))
+        return self

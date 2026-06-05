@@ -49,19 +49,20 @@ class Chart(DisplayProcessor):
             data= data[-lastN:]
         return data
 
-    def getIntraDayData(self,offset,onlyOneDay):
+    def getIntraDayData(self,onlyOneDay,**kwargs):
+        offset = kwargs.get("offset",0)
         if onlyOneDay:
-            return self.hist_value(fullDay=True,days=offset)
-        df= self.hist_value(fullDay=True,days=offset+1)    #df is pd.Series!!
+            return self.get_hist_value(fullDay=True,days=offset,**kwargs)
+        df= self.get_hist_value(fullDay=True,days=offset+1,**kwargs)    #df is pd.Series!!
         if df is not None:
-            df = pd.concat([df,self.hist_value(fullDay=True,days=offset)])
+            df = pd.concat([df,self.get_hist_value(fullDay=True,days=offset,**kwargs)])
             df = df.sort_index()
         else:
-            df=self.hist_value(fullDay=True,days=offset)
+            df=self.get_hist_value(fullDay=True,days=offset,**kwargs)
         return df.dropna()
   
-    def getDiffDayValues(self,date):
-        d= self.hist_value(fullDay=True,date=date,days=0,recursive=False)
+    def getDiffDayValues(self,date,**kwargs):
+        d= self.get_hist_value(fullDay=True,date=date,days=0,recursive=False,**kwargs)
         xVal=None
         yVal=None
         if d is not None:
@@ -69,8 +70,16 @@ class Chart(DisplayProcessor):
             xVal=d.index[int(len(d)/2)]
             yVal=float(d.iloc[-1])-float(d.iloc[0])
         return xVal, yVal
+    
+    def get_hist_value(self,**kwargs):
+        if "options_order" in self.config.keys():
+            options= self.config["options"]
+            option= kwargs.get("option",self.config["options_order"][0]["options"][0])
+            method = getattr(self,options[option]["data_method"])
+            return method(**kwargs)
+        return self.hist_value(**kwargs)
 
-    def prepareDiffValueForDate(self,unit,N):
+    def prepareDiffValueForDate(self,unit,N,**kwargs):
 
         if unit == "day":
             dates=[]
@@ -78,7 +87,7 @@ class Chart(DisplayProcessor):
                 dates.append(datetime.today() + timedelta(days=-i))
             for date in dates:
                 if date.date() not in self.valueCache.index:
-                    xVal, yVal= self.getDiffDayValues(date)
+                    xVal, yVal= self.getDiffDayValues(date, **kwargs)
                     self.logger.info(f'{self.name} Fetched new values for chart: date: {date.date()} , x: {xVal}, y: {yVal}')
                     self.valueCache.loc[date.date()]=pd.Series([xVal,yVal],index=["xValue","yValue"])
                     continue
@@ -88,15 +97,15 @@ class Chart(DisplayProcessor):
                 self.valueCache= self.valueCache.iloc[-(N-1):]
  
 
-    def getDiffAggData(self, N,unit):
+    def getDiffAggData(self, N,unit, **kwargs):
         if unit == "day":
             vals=[]
             dates=[]
-            self.prepareDiffValueForDate(unit,N)
+            self.prepareDiffValueForDate(unit,N,**kwargs)
             df= self.valueCache.dropna()
             x= list(df["xValue"].values)
             y= list(df["yValue"].values)
-            curX, curY = self.getDiffDayValues(datetime.today())
+            curX, curY = self.getDiffDayValues(datetime.today(), **kwargs)
             if curX is not None and curY is not None:
                 x.append(curX)
                 y.append(curY)
@@ -104,15 +113,17 @@ class Chart(DisplayProcessor):
             res.index.name="date"
             return res
 
-    def getDf(self,actionHash,offset=0,lastN=None):
+    def getDf(self,actionHash,**kwargs):
+        offset = kwargs.get("offset",0)
+        lastN = kwargs.get("lastN",None)
         df=None
         self.logger.debug(f'Fetch data for {actionHash}')
         if self.config.get(CONFIG_OPTION_AGGREGATION,None) is None:
-            df= self.getIntraDayData(offset,lastN is None)
+            df= self.getIntraDayData(lastN is None,**kwargs)
         else:
             aggType = self.config[CONFIG_OPTION_AGGREGATION].get(CONFIG_OPTION_AGGREGATION_TYPE,None)
             if aggType == "diff":
-                df= self.getDiffAggData(self.config[CONFIG_OPTION_AGGREGATION].get(CONFIG_OPTION_AGGREGATION_N,100),self.config[CONFIG_OPTION_AGGREGATION].get(CONFIG_OPTION_AGGREGATION_UNIT,"day"))    
+                df= self.getDiffAggData(self.config[CONFIG_OPTION_AGGREGATION].get(CONFIG_OPTION_AGGREGATION_N,100),self.config[CONFIG_OPTION_AGGREGATION].get(CONFIG_OPTION_AGGREGATION_UNIT,"day"),**kwargs)    
         if df is not None:
             self.logger.debug(f'Fetched data (len={len(df)}). Now reduce if needed')
         df= self.reduceData(df,lastN)
@@ -120,13 +131,16 @@ class Chart(DisplayProcessor):
             self.logger.debug(f'ready, len={len(df)}')
         return df
 
-    def getDisplayData(self,value,actionHash,offset=0,lastN=None,currentValues=False) -> DisplayData:
+    def getDisplayData(self,value,actionHash,**kwargs) -> DisplayData:
+        offset = kwargs.get("offset",0)
+        lastN = kwargs.get("lastN",None)
+        currentValues = kwargs.get("currentValues",False)
         self.refresh()
         df=None
         if currentValues:
-            df=self.hist_value(currentValues=True)
+            df=self.get_hist_value(**kwargs)
         else:
-            df=self.getDf(actionHash,offset=offset,lastN=lastN)
+            df=self.getDf(actionHash, **kwargs)
         if df is None:
             return ChartDisplayData(self.ctx, actionHash,self.config.get(CONFIG_OPTION_AGGREGATION,None)) \
                     .withPlotType(self.config.get(CONFIG_OPTION_TYPE,DEFAULT_CONFIG_OPTION_TYPE)).withXValues([]).withYValues([]).withLabel("").withUnit("").withOffset(0).withLastNOption(self.config.get("lastN",None)).withCurrentOption(self.config.get("withCurrent",False))
@@ -135,9 +149,10 @@ class Chart(DisplayProcessor):
         df = df.reset_index()
         xVals=df[dateName].apply(lambda x : x.timestamp()*1000).values
 
-                
+        self.ctx.logger.info(f'Attributes: {kwargs}')
 
         return ChartDisplayData(self.ctx, actionHash,self.config.get(CONFIG_OPTION_AGGREGATION,None)) \
+                .withData(kwargs) \
                 .withDate(str(df[dateName].iloc[0].date())) \
                 .withXValues(list(xVals)) \
                 .withYValues(list(yVals)) \
@@ -147,7 +162,7 @@ class Chart(DisplayProcessor):
                 .withLastNOption(self.config.get("lastN",None))\
                 .withYMinMax(self.config.get("y-range",{}).get("min",None),self.config.get("y-range",{}).get("max",None)) \
                 .withPlotType(self.config.get(CONFIG_OPTION_TYPE,DEFAULT_CONFIG_OPTION_TYPE)) \
-                .withCurrentOption(self.config.get("withCurrent",False))
+                .withCurrentOption(self.config.get("withCurrent",False)).withOptions(self.config.get("options_order",[]),self.config.get("options",{}))
 
     def getAdditionalInfoForClient(self,data:ChartDisplayData):
         return {"render_charts":[data.getDivID()]}
