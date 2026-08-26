@@ -1,0 +1,101 @@
+{% from "ui/_utils.html" import renderButton, renderStateDiv, renderInputField %}
+
+<div class="state-container script-console">
+    {{ renderStateDiv(displayData) }}
+
+    <div class="script-toolbar">
+        <select id="{{ displayData.getSelectId() }}"
+                class="script-select"
+                data-actionhash="{{ displayData.hash }}"
+                data-tab="{{ displayData.tab }}">
+            {% if not displayData.scripts %}
+            <option value="">{{ t("signaldeck_plugin_main.script.no_scripts") }}</option>
+            {% endif %}
+            {% for script in displayData.scripts %}
+            <option value="{{ script.name }}" {{ 'selected' if script.name == displayData.selected_script else '' }}>
+                {{ script.name }}
+            </option>
+            {% endfor %}
+        </select>
+        {{ renderButton("new", displayData) }}
+    </div>
+
+    {% if displayData.script is not none %}
+    <div class="script-tabs">
+        {% if not displayData.isNewScript() %}
+        {{ renderButton("tab_run", displayData) }}
+        {% endif %}
+        {{ renderButton("tab_edit", displayData) }}
+    </div>
+
+    {% if displayData.tab == "run" and displayData.hasScript() %}
+    <div class="script-panel">
+        {% if displayData.script.variables %}
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.variables") }}</div>
+        <div class="script-variables">
+            {% for variable in displayData.script.variables %}
+            <label for="{{ displayData.getVariableInputId(variable.name) }}">{{ variable.name }}</label>
+            <div class="script-variable-input">
+                {% if variable.type == "bool" %}
+                <select id="{{ displayData.getVariableInputId(variable.name) }}">
+                    <option value="true" {{ 'selected' if displayData.getVariableValue(variable)|string|lower == 'true' else '' }}>true</option>
+                    <option value="false" {{ 'selected' if displayData.getVariableValue(variable)|string|lower != 'true' else '' }}>false</option>
+                </select>
+                {% elif variable.type in ["int", "float"] %}
+                {{ renderInputField("script_var_" ~ variable.name, "number", displayData.getVariableValue(variable), displayData) }}
+                {% elif variable.type == "secret" %}
+                {{ renderInputField("script_var_" ~ variable.name, "password", displayData.getVariableValue(variable), displayData) }}
+                {% else %}
+                {{ renderInputField("script_var_" ~ variable.name, "text", displayData.getVariableValue(variable), displayData) }}
+                {% endif %}
+                <span class="script-variable-type">{{ variable.type }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="script-actions">
+            {% if displayData.cmd_res is none or displayData.cmd_res.isFinished() %}
+            {{ renderButton("start", displayData) }}
+            {% else %}
+            {{ renderButton("stop", displayData) }}
+            {% endif %}
+        </div>
+
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.output") }}</div>
+        <div class="script-output">
+            {% if not displayData.getStates() %}
+            <div class="script-empty">{{ t("signaldeck_plugin_main.script.no_output") }}</div>
+            {% endif %}
+            {% for state in displayData.getStates() %}
+            <div class="state-row">
+                <div class="state-log-date">{{ displayData.formatDate(state["date"]) }}</div>
+                <div class="state-log-msg">{{ state["msg"] }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if displayData.tab == "edit" %}
+    <div class="script-panel script-editor">
+        {% if displayData.isNewScript() %}
+        <label for="{{ displayData.getScriptNameInputId() }}">{{ t("signaldeck_plugin_main.script.name") }}</label>
+        <input id="{{ displayData.getScriptNameInputId() }}" type="text" value="{{ displayData.new_script_name }}" />
+        {% endif %}
+
+        <label for="{{ displayData.getCommandsInputId() }}">{{ t("signaldeck_plugin_main.script.commands") }}</label>
+        <textarea id="{{ displayData.getCommandsInputId() }}" rows="12">{{ displayData.getCommandsText() }}</textarea>
+
+        <label for="{{ displayData.getVariablesInputId() }}">{{ t("signaldeck_plugin_main.script.variables_json") }}</label>
+        <textarea id="{{ displayData.getVariablesInputId() }}" rows="8">{{ displayData.getVariablesJson() }}</textarea>
+
+        <div class="script-actions">
+            {{ renderButton("save", displayData) }}
+        </div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="script-empty">{{ t("signaldeck_plugin_main.script.no_scripts_hint") }}</div>
+    {% endif %}
+</div>
