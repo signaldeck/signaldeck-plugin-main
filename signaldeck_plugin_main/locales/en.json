@@ -5,5 +5,20 @@
   "signaldeck_plugin_main.chart.button.prev": "<",
 
   "signaldeck_plugin_main.cmd.button.start": "Start",
-  "signaldeck_plugin_main.cmd.button.stop": "Stop"
+  "signaldeck_plugin_main.cmd.button.stop": "Stop",
+
+  "signaldeck_plugin_main.script.button.new": "New",
+  "signaldeck_plugin_main.script.button.save": "Save",
+  "signaldeck_plugin_main.script.button.start": "Start",
+  "signaldeck_plugin_main.script.button.stop": "Stop",
+  "signaldeck_plugin_main.script.commands": "Commands",
+  "signaldeck_plugin_main.script.name": "Name",
+  "signaldeck_plugin_main.script.no_output": "No output yet.",
+  "signaldeck_plugin_main.script.no_scripts": "No scripts available",
+  "signaldeck_plugin_main.script.no_scripts_hint": "No script exists yet. Use 'New' to create one.",
+  "signaldeck_plugin_main.script.output": "Output",
+  "signaldeck_plugin_main.script.tab.edit": "Edit",
+  "signaldeck_plugin_main.script.tab.run": "Run",
+  "signaldeck_plugin_main.script.variables": "Variables",
+  "signaldeck_plugin_main.script.variables_json": "Variables (JSON)"
 }

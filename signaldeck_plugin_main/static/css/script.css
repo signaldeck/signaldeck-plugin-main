@@ -1,0 +1,73 @@
+.script-console {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.script-toolbar,
+.script-tabs,
+.script-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.script-select {
+    min-width: 14rem;
+    flex: 1;
+}
+
+.script-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.script-section-title {
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+.script-variables {
+    display: grid;
+    grid-template-columns: minmax(8rem, auto) 1fr;
+    gap: 0.5rem 0.75rem;
+    align-items: center;
+}
+
+.script-variable-input {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.script-variable-input input,
+.script-variable-input select,
+.script-editor input,
+.script-editor textarea,
+.script-select {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.script-variable-type {
+    opacity: 0.65;
+    min-width: 3rem;
+    font-size: 0.85em;
+}
+
+.script-editor textarea {
+    font-family: monospace;
+    resize: vertical;
+}
+
+.script-output {
+    max-height: 18rem;
+    overflow-y: auto;
+}
+
+.script-empty {
+    opacity: 0.7;
+    padding: 0.5rem 0;
+}
