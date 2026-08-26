@@ -20,12 +20,14 @@
         {{ renderButton("new", displayData) }}
     </div>
 
-    {% if displayData.script is not none %}
     <div class="script-tabs">
-        {% if not displayData.isNewScript() %}
+        {% if displayData.hasScript() %}
         {{ renderButton("tab_run", displayData) }}
         {% endif %}
+        {% if displayData.script is not none %}
         {{ renderButton("tab_edit", displayData) }}
+        {% endif %}
+        {{ renderButton("tab_commands", displayData) }}
     </div>
 
     {% if displayData.tab == "run" and displayData.hasScript() %}
@@ -77,7 +79,7 @@
     </div>
     {% endif %}
 
-    {% if displayData.tab == "edit" %}
+    {% if displayData.tab == "edit" and displayData.script is not none %}
     <div class="script-panel script-editor">
         {% if displayData.isNewScript() %}
         <label for="{{ displayData.getScriptNameInputId() }}">{{ t("signaldeck_plugin_main.script.name") }}</label>
@@ -95,7 +97,26 @@
         </div>
     </div>
     {% endif %}
-    {% else %}
+
+    {% if displayData.tab == "commands" %}
+    <div class="script-panel">
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.available_commands") }}</div>
+        {% if not displayData.commands %}
+        <div class="script-empty">{{ t("signaldeck_plugin_main.script.no_commands") }}</div>
+        {% else %}
+        <div class="script-command-list">
+            {% for command in displayData.commands %}
+            <div class="script-command-row">
+                <code class="script-command-name">{{ command.name }}</code>
+                <div class="script-command-help">{{ command.help or "" }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if displayData.script is none and displayData.tab != "commands" %}
     <div class="script-empty">{{ t("signaldeck_plugin_main.script.no_scripts_hint") }}</div>
     {% endif %}
 </div>

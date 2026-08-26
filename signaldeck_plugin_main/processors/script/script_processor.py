@@ -112,7 +112,8 @@ class ScriptProcessor(DisplayProcessor):
         cmd_res = None
         if selected == NEW_SCRIPT:
             script = ScriptDefinition(name="", commands=[], variables=[])
-            tab = "edit"
+            if tab != "commands":
+                tab = "edit"
         elif selected:
             script = self.cmd.getScript(selected)
             cmd_res = self.cmd.current.get(selected)
@@ -122,6 +123,7 @@ class ScriptProcessor(DisplayProcessor):
         return (
             ScriptDisplayData(self.ctx, actionHash)
             .withScripts(self.cmd.listScripts())
+            .withCommands(self.cmd.listCommands())
             .withSelection(selected, tab)
             .withScript(script)
             .withCmdResult(cmd_res)

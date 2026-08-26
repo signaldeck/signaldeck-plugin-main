@@ -67,6 +67,27 @@
     overflow-y: auto;
 }
 
+.script-command-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.script-command-row {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.35fr) 1fr;
+    gap: 0.75rem;
+    align-items: start;
+}
+
+.script-command-name {
+    font-weight: 600;
+}
+
+.script-command-help {
+    opacity: 0.8;
+}
+
 .script-empty {
     opacity: 0.7;
     padding: 0.5rem 0;
