@@ -122,6 +122,7 @@ class ScriptProcessor(DisplayProcessor):
         return (
             ScriptDisplayData(self.ctx, actionHash)
             .withScripts(self.cmd.listScripts())
+            .withCommands(self.cmd.listCommands())
             .withSelection(selected, tab)
             .withScript(script)
             .withCmdResult(cmd_res)
