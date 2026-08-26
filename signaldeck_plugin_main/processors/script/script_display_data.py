@@ -10,6 +10,7 @@ class ScriptDisplayData(DisplayData):
     def __init__(self, ctx, action_hash):
         super().__init__(ctx, action_hash)
         self.scripts = []
+        self.commands = []
         self.selected_script = None
         self.tab = "run"
         self.script = None
@@ -19,6 +20,10 @@ class ScriptDisplayData(DisplayData):
 
     def withScripts(self, scripts):
         self.scripts = scripts
+        return self
+
+    def withCommands(self, commands):
+        self.commands = commands
         return self
 
     def withSelection(self, selected_script, tab):
@@ -118,6 +123,15 @@ class ScriptDisplayData(DisplayData):
                 },
                 "text": self.t("signaldeck_plugin_main.script.tab.edit"),
                 "button_active_condition": ("tab", "edit"),
+            },
+            "tab_commands": {
+                "name": "tab_commands",
+                "params": {
+                    "tab": "commands",
+                    "selected_script": self.selected_script,
+                },
+                "text": self.t("signaldeck_plugin_main.script.tab.commands"),
+                "button_active_condition": ("tab", "commands"),
             },
             "new": {
                 "name": "new",
