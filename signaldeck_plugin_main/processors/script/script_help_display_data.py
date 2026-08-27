@@ -5,14 +5,21 @@ class ScriptHelpDisplayData(DisplayData):
     def __init__(self, ctx, action_hash):
         super().__init__(ctx, action_hash)
         self.commands = []
+        self.values = []
+        self.methods = []
         self.tab = "language"
 
     def withCommands(self, commands):
         self.commands = commands
         return self
 
+    def withValueProvider(self, values, methods):
+        self.values = values
+        self.methods = methods
+        return self
+
     def withTab(self, tab):
-        self.tab = tab if tab in ("language", "commands") else "language"
+        self.tab = tab if tab in ("language", "commands", "value_provider") else "language"
         return self
 
     def isConditionCommand(self, command):
@@ -31,6 +38,12 @@ class ScriptHelpDisplayData(DisplayData):
                 "params": {"tab": "commands"},
                 "text": self.t("signaldeck_plugin_main.script.tab.commands"),
                 "button_active_condition": ("tab", "commands"),
+            },
+            "tab_value_provider": {
+                "name": "tab_value_provider",
+                "params": {"tab": "value_provider"},
+                "text": "ValueProvider",
+                "button_active_condition": ("tab", "value_provider"),
             },
         }
 
