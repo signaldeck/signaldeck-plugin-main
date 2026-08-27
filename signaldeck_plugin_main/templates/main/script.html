@@ -27,7 +27,6 @@
         {% if displayData.script is not none %}
         {{ renderButton("tab_edit", displayData) }}
         {% endif %}
-        {{ renderButton("tab_commands", displayData) }}
         {{ renderButton("tab_aliases", displayData) }}
     </div>
 
@@ -57,12 +56,15 @@
         </div>
         {% endif %}
 
-        <div class="script-actions">
+        <div class="script-actions script-run-actions">
             {% if displayData.cmd_res is none or displayData.cmd_res.isFinished() %}
             {{ renderButton("start", displayData) }}
             {% else %}
             {{ renderButton("stop", displayData) }}
             {% endif %}
+            <div class="script-refresh-action">
+                {{ renderButton("refresh", displayData) }}
+            </div>
         </div>
 
         <div class="script-section-title">{{ t("signaldeck_plugin_main.script.output") }}</div>
@@ -99,24 +101,6 @@
     </div>
     {% endif %}
 
-    {% if displayData.tab == "commands" %}
-    <div class="script-panel">
-        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.available_commands") }}</div>
-        {% if not displayData.commands %}
-        <div class="script-empty">{{ t("signaldeck_plugin_main.script.no_commands") }}</div>
-        {% else %}
-        <div class="script-command-list">
-            {% for command in displayData.commands %}
-            <div class="script-command-row">
-                <code class="script-command-name">{{ command.name }}</code>
-                <div class="script-command-help">{{ command.help or "" }}</div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-    </div>
-    {% endif %}
-
     {% if displayData.tab == "aliases" %}
     <div class="script-panel">
         <div class="script-section-title">{{ t("signaldeck_plugin_main.script.aliases") }}</div>
@@ -150,7 +134,7 @@
     </div>
     {% endif %}
 
-    {% if displayData.script is none and displayData.tab not in ["commands", "aliases"] %}
+    {% if displayData.script is none and displayData.tab != "aliases" %}
     <div class="script-empty">{{ t("signaldeck_plugin_main.script.no_scripts_hint") }}</div>
     {% endif %}
 </div>
