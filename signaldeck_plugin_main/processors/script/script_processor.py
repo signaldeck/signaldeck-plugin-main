@@ -139,6 +139,10 @@ class ScriptProcessor(DisplayProcessor):
             return (
                 ScriptHelpDisplayData(self.ctx, actionHash)
                 .withCommands(self.cmd.listCommands())
+                .withValueProvider(
+                    self.valueProvider.listValues(),
+                    self.valueProvider.listMethods(),
+                )
                 .withTab(kwargs.get("tab", "language"))
             )
 
