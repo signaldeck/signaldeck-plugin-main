@@ -28,6 +28,7 @@
         {{ renderButton("tab_edit", displayData) }}
         {% endif %}
         {{ renderButton("tab_commands", displayData) }}
+        {{ renderButton("tab_aliases", displayData) }}
     </div>
 
     {% if displayData.tab == "run" and displayData.hasScript() %}
@@ -116,7 +117,40 @@
     </div>
     {% endif %}
 
-    {% if displayData.script is none and displayData.tab != "commands" %}
+    {% if displayData.tab == "aliases" %}
+    <div class="script-panel">
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.aliases") }}</div>
+
+        {% if not displayData.aliases %}
+        <div class="script-empty">{{ t("signaldeck_plugin_main.script.no_aliases") }}</div>
+        {% else %}
+        <div class="script-alias-list">
+            {% for alias in displayData.aliases %}
+            <div class="script-alias-row">
+                <code class="script-alias-name">{{ alias.name }}</code>
+                <input id="{{ displayData.getAliasValueInputId(loop.index0) }}"
+                       type="text"
+                       value="{{ alias.value }}" />
+                {{ renderButton("save_alias_" ~ loop.index0, displayData) }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.new_alias") }}</div>
+        <div class="script-alias-row script-alias-new">
+            <input id="{{ displayData.getNewAliasNameInputId() }}"
+                   type="text"
+                   placeholder="{{ t('signaldeck_plugin_main.script.alias_name') }}" />
+            <input id="{{ displayData.getNewAliasValueInputId() }}"
+                   type="text"
+                   placeholder="{{ t('signaldeck_plugin_main.script.alias_value') }}" />
+            {{ renderButton("save_alias_new", displayData) }}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if displayData.script is none and displayData.tab not in ["commands", "aliases"] %}
     <div class="script-empty">{{ t("signaldeck_plugin_main.script.no_scripts_hint") }}</div>
     {% endif %}
 </div>
