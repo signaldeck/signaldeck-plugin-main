@@ -6,6 +6,7 @@
     <div class="script-tabs">
         {{ renderButton("tab_language", displayData) }}
         {{ renderButton("tab_commands", displayData) }}
+        {{ renderButton("tab_value_provider", displayData) }}
     </div>
 
     {% if displayData.tab == "language" %}
@@ -79,6 +80,30 @@ end</code></pre>
             {% endfor %}
         </div>
         {% endif %}
+    </div>
+    {% endif %}
+
+    {% if displayData.tab == "value_provider" %}
+    <div class="script-panel">
+        <div class="script-section-title">Values</div>
+        <table class="script-help-table">
+            <thead><tr><th>valueName</th><th>processor</th><th>aktueller Wert</th></tr></thead>
+            <tbody>
+            {% for value in displayData.values %}
+            <tr><td><code>{{ value.name }}</code></td><td>{{ value.processor }}</td><td>{{ value.value }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="script-section-title">Methoden</div>
+        <table class="script-help-table">
+            <thead><tr><th>methodenName</th><th>processor</th></tr></thead>
+            <tbody>
+            {% for method in displayData.methods %}
+            <tr><td><code>{{ method.name }}</code></td><td>{{ method.processor }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
     {% endif %}
 </div>
