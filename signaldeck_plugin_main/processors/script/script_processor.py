@@ -1,7 +1,7 @@
 import json
 import logging
 
-from signaldeck_sdk import Cmd, DisplayProcessor, ScriptDefinition
+from signaldeck_sdk import AliasDefinition, Cmd, DisplayProcessor, ScriptDefinition
 
 from .script_display_data import NEW_SCRIPT, ScriptDisplayData
 
@@ -62,6 +62,11 @@ class ScriptProcessor(DisplayProcessor):
                 values[variable.name] = variable.default
         return values
 
+    def _script_variable_values(self, script, cmd_res, kwargs):
+        if cmd_res is not None and getattr(cmd_res, "variables", None) is not None:
+            return dict(cmd_res.variables)
+        return self._script_variables_from_kwargs(script, kwargs)
+
     def _parse_commands(self, text):
         return [line.strip() for line in str(text or "").splitlines() if line.strip()]
 
@@ -101,6 +106,13 @@ class ScriptProcessor(DisplayProcessor):
             })
             self.cmd.saveScript(script)
 
+        if "save_alias" in kwargs:
+            alias_name = str(kwargs.get("alias_name", "")).strip()
+            alias_value = str(kwargs.get("alias_value", "")).strip()
+            self.cmd.saveAlias(
+                AliasDefinition(name=alias_name, value=alias_value)
+            )
+
     def getDisplayData(self, value, actionHash, **kwargs):
         if self.cmd is None:
             raise RuntimeError("Cmd is not registered")
@@ -112,18 +124,19 @@ class ScriptProcessor(DisplayProcessor):
         cmd_res = None
         if selected == NEW_SCRIPT:
             script = ScriptDefinition(name="", commands=[], variables=[])
-            if tab != "commands":
+            if tab not in ("commands", "aliases"):
                 tab = "edit"
         elif selected:
             script = self.cmd.getScript(selected)
             cmd_res = self.cmd.current.get(selected)
 
-        variable_values = self._script_variables_from_kwargs(script, kwargs)
+        variable_values = self._script_variable_values(script, cmd_res, kwargs)
 
         return (
             ScriptDisplayData(self.ctx, actionHash)
             .withScripts(self.cmd.listScripts())
             .withCommands(self.cmd.listCommands())
+            .withAliases(self.cmd.listAliases())
             .withSelection(selected, tab)
             .withScript(script)
             .withCmdResult(cmd_res)
@@ -132,7 +145,7 @@ class ScriptProcessor(DisplayProcessor):
         )
 
     def getBoolParams(self):
-        return ["start", "stop", "save"]
+        return ["start", "stop", "save", "save_alias"]
 
     def getIntParams(self):
         return []
