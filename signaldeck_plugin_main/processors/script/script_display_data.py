@@ -11,6 +11,7 @@ class ScriptDisplayData(DisplayData):
         super().__init__(ctx, action_hash)
         self.scripts = []
         self.commands = []
+        self.aliases = []
         self.selected_script = None
         self.tab = "run"
         self.script = None
@@ -24,6 +25,10 @@ class ScriptDisplayData(DisplayData):
 
     def withCommands(self, commands):
         self.commands = commands
+        return self
+
+    def withAliases(self, aliases):
+        self.aliases = aliases
         return self
 
     def withSelection(self, selected_script, tab):
@@ -67,6 +72,15 @@ class ScriptDisplayData(DisplayData):
 
     def getScriptNameInputId(self):
         return f"script_name_{self.hash}"
+
+    def getAliasValueInputId(self, index):
+        return f"script_alias_value_{index}_{self.hash}"
+
+    def getNewAliasNameInputId(self):
+        return f"script_alias_new_name_{self.hash}"
+
+    def getNewAliasValueInputId(self):
+        return f"script_alias_new_value_{self.hash}"
 
     def getCommandsText(self):
         if self.script is None:
@@ -133,6 +147,15 @@ class ScriptDisplayData(DisplayData):
                 "text": self.t("signaldeck_plugin_main.script.tab.commands"),
                 "button_active_condition": ("tab", "commands"),
             },
+            "tab_aliases": {
+                "name": "tab_aliases",
+                "params": {
+                    "tab": "aliases",
+                    "selected_script": self.selected_script,
+                },
+                "text": self.t("signaldeck_plugin_main.script.tab.aliases"),
+                "button_active_condition": ("tab", "aliases"),
+            },
             "new": {
                 "name": "new",
                 "params": {
@@ -183,6 +206,31 @@ class ScriptDisplayData(DisplayData):
                 "params": save_params,
                 "text": self.t("signaldeck_plugin_main.script.button.save"),
             }
+
+        for index, alias in enumerate(self.aliases):
+            buttons[f"save_alias_{index}"] = {
+                "name": f"save_alias_{index}",
+                "params": {
+                    "save_alias": True,
+                    "tab": "aliases",
+                    "selected_script": self.selected_script,
+                    "alias_name": alias.name,
+                    "alias_value": f"@script_alias_value_{index}",
+                },
+                "text": self.t("signaldeck_plugin_main.script.button.save"),
+            }
+
+        buttons["save_alias_new"] = {
+            "name": "save_alias_new",
+            "params": {
+                "save_alias": True,
+                "tab": "aliases",
+                "selected_script": self.selected_script,
+                "alias_name": "@script_alias_new_name",
+                "alias_value": "@script_alias_new_value",
+            },
+            "text": self.t("signaldeck_plugin_main.script.button.add"),
+        }
 
         return buttons
 
