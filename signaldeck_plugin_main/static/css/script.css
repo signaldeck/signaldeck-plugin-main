@@ -46,7 +46,8 @@
 .script-variable-input select,
 .script-editor input,
 .script-editor textarea,
-.script-select {
+.script-select,
+.script-alias-row input {
     box-sizing: border-box;
     width: 100%;
 }
@@ -67,7 +68,8 @@
     overflow-y: auto;
 }
 
-.script-command-list {
+.script-command-list,
+.script-alias-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -80,12 +82,24 @@
     align-items: start;
 }
 
-.script-command-name {
+.script-command-name,
+.script-alias-name {
     font-weight: 600;
 }
 
 .script-command-help {
     opacity: 0.8;
+}
+
+.script-alias-row {
+    display: grid;
+    grid-template-columns: minmax(8rem, 0.25fr) 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.script-alias-new {
+    margin-top: 0.25rem;
 }
 
 .script-empty {
