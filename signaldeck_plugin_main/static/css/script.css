@@ -134,3 +134,20 @@
 .script-help-content code {
     white-space: pre;
 }
+
+.script-help-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.script-help-table th,
+.script-help-table td {
+    padding: 0.4rem 0.5rem;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+}
+
+.script-help-table th {
+    font-weight: 600;
+}
