@@ -4,6 +4,10 @@ import logging
 from signaldeck_sdk import AliasDefinition, Cmd, DisplayProcessor, ScriptDefinition
 
 from .script_display_data import NEW_SCRIPT, ScriptDisplayData
+from .script_help_display_data import ScriptHelpDisplayData
+
+
+HELP_VALUE = "@help"
 
 
 class ScriptProcessor(DisplayProcessor):
@@ -15,22 +19,33 @@ class ScriptProcessor(DisplayProcessor):
     def registerCommands(self, cmd: Cmd):
         self.cmd = cmd
 
+    def _is_help_view(self, value):
+        if isinstance(value, list):
+            value = value[0] if value else None
+        return value == HELP_VALUE
+
     def getTemplate(self, value):
+        if self._is_help_view(value):
+            return "main/script_help.html"
         return "main/script.html"
 
     def getAdditionalJsFiles(self, value):
+        if self._is_help_view(value):
+            return []
         return [("main", "js/script.js")]
 
     def getAdditionalCssFiles(self, value):
         return [("main", "css/script.css")]
 
-    def getJS_functions_to_call_on_client(self, data: ScriptDisplayData):
+    def getJS_functions_to_call_on_client(self, data):
+        if isinstance(data, ScriptHelpDisplayData):
+            return {}
         return {data.getSelectId(): "initScriptSelect"}
 
     def _initial_script_name(self, value):
         if isinstance(value, list):
             value = value[0] if value else None
-        if value in (None, "", "*"):
+        if value in (None, "", "*", HELP_VALUE):
             return None
         return str(value)
 
@@ -80,6 +95,9 @@ class ScriptProcessor(DisplayProcessor):
         if self.cmd is None:
             raise RuntimeError("Cmd is not registered")
 
+        if self._is_help_view(value):
+            return
+
         selected = kwargs.get("selected_script")
 
         if "start" in kwargs:
@@ -117,6 +135,17 @@ class ScriptProcessor(DisplayProcessor):
         if self.cmd is None:
             raise RuntimeError("Cmd is not registered")
 
+        if self._is_help_view(value):
+            return (
+                ScriptHelpDisplayData(self.ctx, actionHash)
+                .withCommands(self.cmd.listCommands())
+                .withValueProvider(
+                    self.valueProvider.listValues(),
+                    self.valueProvider.listMethods(),
+                )
+                .withTab(kwargs.get("tab", "language"))
+            )
+
         selected = self._resolve_selection(value, **kwargs)
         tab = kwargs.get("tab", "run")
 
@@ -124,7 +153,7 @@ class ScriptProcessor(DisplayProcessor):
         cmd_res = None
         if selected == NEW_SCRIPT:
             script = ScriptDefinition(name="", commands=[], variables=[])
-            if tab not in ("commands", "aliases"):
+            if tab != "aliases":
                 tab = "edit"
         elif selected:
             script = self.cmd.getScript(selected)
@@ -135,7 +164,6 @@ class ScriptProcessor(DisplayProcessor):
         return (
             ScriptDisplayData(self.ctx, actionHash)
             .withScripts(self.cmd.listScripts())
-            .withCommands(self.cmd.listCommands())
             .withAliases(self.cmd.listAliases())
             .withSelection(selected, tab)
             .withScript(script)

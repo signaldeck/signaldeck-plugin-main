@@ -1,0 +1,109 @@
+{% from "ui/_utils.html" import renderButton, renderStateDiv %}
+
+<div class="state-container script-console script-help">
+    {{ renderStateDiv(displayData) }}
+
+    <div class="script-tabs">
+        {{ renderButton("tab_language", displayData) }}
+        {{ renderButton("tab_commands", displayData) }}
+        {{ renderButton("tab_value_provider", displayData) }}
+    </div>
+
+    {% if displayData.tab == "language" %}
+    <div class="script-panel script-help-content">
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.help.variables.title") }}</div>
+        <p>{{ t("signaldeck_plugin_main.script.help.variables.text") }}</p>
+        <pre><code>$name$</code></pre>
+
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.help.set.title") }}</div>
+        <p>{{ t("signaldeck_plugin_main.script.help.set.text") }}</p>
+        <pre><code>set state waiting
+set message $initial_message$</code></pre>
+
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.help.if.title") }}</div>
+        <p>{{ t("signaldeck_plugin_main.script.help.if.text") }}</p>
+        <pre><code>if compare $a$ &lt; $b$
+    echo a is smaller
+else
+    echo a is not smaller
+end</code></pre>
+
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.help.while.title") }}</div>
+        <p>{{ t("signaldeck_plugin_main.script.help.while.text") }}</p>
+        <pre><code>while compare_value car_connected == 1
+    waitFor pv_power &gt;= 3000
+    charge_start
+    waitFor pv_power &lt; 2000
+    charge_stop
+end</code></pre>
+
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.help.conditions.title") }}</div>
+        <p>{{ t("signaldeck_plugin_main.script.help.conditions.text") }}</p>
+        <pre><code>if compare $counter$ &lt; 10
+if compare_value battery_soc &gt;= $limit$</code></pre>
+
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.help.example.title") }}</div>
+        <pre><code>set limit 80
+set state waiting
+
+if compare_value battery_soc &gt;= $limit$
+    set state full
+    socketio_send testraum Status: $state$
+else
+    set state charging
+    socketio_send testraum Status: $state$
+end</code></pre>
+    </div>
+    {% endif %}
+
+    {% if displayData.tab == "commands" %}
+    <div class="script-panel">
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.available_commands") }}</div>
+        {% if not displayData.commands %}
+        <div class="script-empty">{{ t("signaldeck_plugin_main.script.no_commands") }}</div>
+        {% else %}
+        <div class="script-command-list">
+            {% for command in displayData.commands %}
+            <div class="script-command-row script-help-command-row">
+                <div>
+                    <code class="script-command-name">{{ command.name }}</code>
+                    <span class="script-command-kind">
+                        {% if displayData.isConditionCommand(command) %}
+                        {{ t("signaldeck_plugin_main.script.help.command_type.condition") }}
+                        {% else %}
+                        {{ t("signaldeck_plugin_main.script.help.command_type.command") }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="script-command-help">{{ command.help or "" }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if displayData.tab == "value_provider" %}
+    <div class="script-panel">
+        <div class="script-section-title">Values</div>
+        <table class="script-help-table">
+            <thead><tr><th>valueName</th><th>processor</th><th>aktueller Wert</th></tr></thead>
+            <tbody>
+            {% for value in displayData.values %}
+            <tr><td><code>{{ value.name }}</code></td><td>{{ value.processor }}</td><td>{{ value.value }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="script-section-title">Methoden</div>
+        <table class="script-help-table">
+            <thead><tr><th>methodenName</th><th>processor</th></tr></thead>
+            <tbody>
+            {% for method in displayData.methods %}
+            <tr><td><code>{{ method.name }}</code></td><td>{{ method.processor }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
