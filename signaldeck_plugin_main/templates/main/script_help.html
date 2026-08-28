@@ -18,7 +18,13 @@
         <div class="script-section-title">{{ t("signaldeck_plugin_main.script.help.set.title") }}</div>
         <p>{{ t("signaldeck_plugin_main.script.help.set.text") }}</p>
         <pre><code>set state waiting
-set message $initial_message$</code></pre>
+set message $initial_message$
+set battery_soc = get_value battery_soc</code></pre>
+
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.help.value_commands.title") }}</div>
+        <p>{{ t("signaldeck_plugin_main.script.help.value_commands.text") }}</p>
+        <pre><code>set battery_soc = get_value battery_soc
+socketio_send testraum SOC: $battery_soc$</code></pre>
 
         <div class="script-section-title">{{ t("signaldeck_plugin_main.script.help.if.title") }}</div>
         <p>{{ t("signaldeck_plugin_main.script.help.if.text") }}</p>
@@ -44,9 +50,10 @@ if compare_value battery_soc &gt;= $limit$</code></pre>
 
         <div class="script-section-title">{{ t("signaldeck_plugin_main.script.help.example.title") }}</div>
         <pre><code>set limit 80
+set battery_soc = get_value battery_soc
 set state waiting
 
-if compare_value battery_soc &gt;= $limit$
+if compare $battery_soc$ &gt;= $limit$
     set state full
     socketio_send testraum Status: $state$
 else
@@ -70,6 +77,8 @@ end</code></pre>
                     <span class="script-command-kind">
                         {% if displayData.isConditionCommand(command) %}
                         {{ t("signaldeck_plugin_main.script.help.command_type.condition") }}
+                        {% elif displayData.isValueCommand(command) %}
+                        {{ t("signaldeck_plugin_main.script.help.command_type.value") }}
                         {% else %}
                         {{ t("signaldeck_plugin_main.script.help.command_type.command") }}
                         {% endif %}

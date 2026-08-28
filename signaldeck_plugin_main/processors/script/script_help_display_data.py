@@ -1,4 +1,4 @@
-from signaldeck_sdk import ConditionCommand, DisplayData
+from signaldeck_sdk import ConditionCommand, DisplayData, ValueCommand
 
 
 class ScriptHelpDisplayData(DisplayData):
@@ -24,6 +24,9 @@ class ScriptHelpDisplayData(DisplayData):
 
     def isConditionCommand(self, command):
         return isinstance(command, ConditionCommand)
+
+    def isValueCommand(self, command):
+        return isinstance(command, ValueCommand)
 
     def buttons(self):
         return {
