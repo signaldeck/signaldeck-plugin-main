@@ -2,6 +2,13 @@
 
 This repository contains the main plugins for the SignalDeck framework.
 
+The ScriptProcessor shows independent in-memory runs of each named script,
+including their start time, status, launch variables and recent output. Each
+active run has its own Stop button; starting another instance does not replace
+an existing one. Finished runs are retained only in a bounded runtime history
+and are not restarted when SignalDeck restarts. Requires the matching
+concurrent-run version of `signaldeck-sdk`.
+
 
 
 ## Installation

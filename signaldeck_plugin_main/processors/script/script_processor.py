@@ -17,6 +17,11 @@ class ScriptProcessor(DisplayProcessor):
         self.cmd: Cmd | None = None
 
     def registerCommands(self, cmd: Cmd):
+        for method in ("getScriptRuns", "getScriptRun", "stopRun"):
+            if not callable(getattr(cmd, method, None)):
+                raise RuntimeError(
+                    "ScriptProcessor requires signaldeck-sdk with concurrent script runs"
+                )
         self.cmd = cmd
 
     def _is_help_view(self, value):
@@ -77,9 +82,25 @@ class ScriptProcessor(DisplayProcessor):
                 values[variable.name] = variable.default
         return values
 
-    def _script_variable_values(self, script, cmd_res, kwargs):
+    def _script_variable_values(self, script, cmd_res, kwargs, runs=()):
         if cmd_res is not None and getattr(cmd_res, "variables", None) is not None:
-            return dict(cmd_res.variables)
+            # A variable that was secret in the latest run must not be
+            # prefilled into a plain text input after editing its type.
+            secret_names = set()
+            if runs and runs[0].result is cmd_res:
+                historical_secret_names = getattr(runs[0], "secret_variable_names", None)
+                if historical_secret_names is None:
+                    return {}  # Older SDK: no reliable secrecy classification.
+                secret_names.update(historical_secret_names)
+            if script is not None:
+                secret_names.update(
+                    variable.name for variable in script.variables
+                    if variable.type == "secret"
+                )
+            return {
+                name: value for name, value in cmd_res.variables.items()
+                if name not in secret_names
+            }
         return self._script_variables_from_kwargs(script, kwargs)
 
     def _parse_commands(self, text):
@@ -106,6 +127,13 @@ class ScriptProcessor(DisplayProcessor):
                 raise ValueError(f"{selected} is not a known script")
             variables = self._script_variables_from_kwargs(script, kwargs)
             self.cmd.runScript(selected, **variables)
+
+        if "stop_run" in kwargs:
+            run_id = kwargs.get("run_id")
+            run = self.cmd.getScriptRun(run_id) if isinstance(run_id, str) else None
+            if run is None or run.script_name != selected:
+                raise ValueError("Unknown run for selected script")
+            self.cmd.stopRun(run_id)
 
         if "stop" in kwargs and selected:
             self.cmd.stop(selected)
@@ -151,6 +179,7 @@ class ScriptProcessor(DisplayProcessor):
 
         script = None
         cmd_res = None
+        runs = []
         if selected == NEW_SCRIPT:
             script = ScriptDefinition(name="", commands=[], variables=[])
             if tab != "aliases":
@@ -158,8 +187,9 @@ class ScriptProcessor(DisplayProcessor):
         elif selected:
             script = self.cmd.getScript(selected)
             cmd_res = self.cmd.current.get(selected)
+            runs = self.cmd.getScriptRuns(selected)
 
-        variable_values = self._script_variable_values(script, cmd_res, kwargs)
+        variable_values = self._script_variable_values(script, cmd_res, kwargs, runs)
 
         return (
             ScriptDisplayData(self.ctx, actionHash)
@@ -168,12 +198,13 @@ class ScriptProcessor(DisplayProcessor):
             .withSelection(selected, tab)
             .withScript(script)
             .withCmdResult(cmd_res)
+            .withRuns(runs)
             .withVariableValues(variable_values)
             .withNewScriptName(kwargs.get("new_script_name", ""))
         )
 
     def getBoolParams(self):
-        return ["start", "stop", "save", "save_alias"]
+        return ["start", "stop", "stop_run", "save", "save_alias"]
 
     def getIntParams(self):
         return []
