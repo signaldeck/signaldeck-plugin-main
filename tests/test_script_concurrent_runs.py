@@ -21,9 +21,11 @@ class FakeCmd:
         second_result.finish()
         self.runs = [
             SimpleNamespace(run_id="first-id", script_name="monitor", result=first_result,
-                            started_at=datetime.now(), status="running"),
+                            started_at=datetime.now(), status="running",
+                            secret_variable_names=frozenset({"password"})),
             SimpleNamespace(run_id="second-id", script_name="monitor", result=second_result,
-                            started_at=datetime.now(), status="completed"),
+                            started_at=datetime.now(), status="completed",
+                            secret_variable_names=frozenset({"password"})),
         ]
         self.current = {"monitor": first_result}
         self.starts = []
@@ -88,6 +90,63 @@ class ScriptProcessorConcurrentRunTests(unittest.TestCase):
         self.assertEqual(self.cmd.starts, [
             ("monitor", {"threshold": "95"}),
         ])
+
+    def test_historical_secrets_stay_masked_after_removal_or_type_change(self):
+        old_run = self.cmd.runs[0]
+        self.cmd.script = ScriptDefinition(
+            name="monitor", commands=["sleep 100"],
+            variables=[ScriptVariable(name="threshold"), ScriptVariable(name="password")],
+        )
+        display = self.processor.getDisplayData("monitor", "hash", selected_script="monitor")
+        self.assertEqual(display.getRunVariables(old_run), [
+            {"name": "threshold", "value": "80"},
+            {"name": "password", "value": "••••"},
+        ])
+        self.assertNotIn("password", display.variable_values)
+        self.assertEqual(display.getVariableValue(self.cmd.script.variables[1]), "")
+
+        self.cmd.script = ScriptDefinition(
+            name="monitor", commands=["sleep 100"],
+            variables=[ScriptVariable(name="threshold")],
+        )
+        display = self.processor.getDisplayData("monitor", "hash", selected_script="monitor")
+        self.assertEqual(display.getRunVariables(old_run)[1],
+                         {"name": "password", "value": "••••"})
+
+    def test_each_run_uses_its_own_secret_classification(self):
+        self.cmd.script = ScriptDefinition(
+            name="monitor", commands=["sleep 100"],
+            variables=[ScriptVariable(name="threshold"), ScriptVariable(name="password")],
+        )
+        old_run = self.cmd.runs[0]
+        public_result = CmdResult(variables={"password": "intentionally public"})
+        public_run = SimpleNamespace(
+            run_id="third-id", script_name="monitor", result=public_result,
+            started_at=datetime.now(), status="completed",
+            secret_variable_names=frozenset(),
+        )
+        self.cmd.runs.insert(0, public_run)
+        self.cmd.current["monitor"] = public_result
+        display = self.processor.getDisplayData("monitor", "hash", selected_script="monitor")
+        self.assertEqual(display.getRunVariables(public_run), [
+            {"name": "password", "value": "intentionally public"},
+        ])
+        self.assertEqual(display.getRunVariables(old_run)[1]["value"], "••••")
+        self.assertEqual(display.variable_values["password"], "intentionally public")
+
+    def test_older_sdk_without_secret_snapshot_masks_all_historical_values(self):
+        run = self.cmd.runs[0]
+        del run.secret_variable_names
+        self.cmd.script = ScriptDefinition(
+            name="monitor", commands=["sleep 100"],
+            variables=[ScriptVariable(name="password")],
+        )
+        display = self.processor.getDisplayData("monitor", "hash", selected_script="monitor")
+        self.assertEqual(display.getRunVariables(run), [
+            {"name": "threshold", "value": "••••"},
+            {"name": "password", "value": "••••"},
+        ])
+        self.assertEqual(display.variable_values, {})
 
     def test_old_sdk_is_rejected_at_registration(self):
         with self.assertRaisesRegex(RuntimeError, "concurrent script runs"):

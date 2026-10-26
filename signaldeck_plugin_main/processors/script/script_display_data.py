@@ -120,7 +120,17 @@ class ScriptDisplayData(DisplayData):
         ]
 
     def getRunVariables(self, run):
-        secret_names = {
+        # Historical runs keep the secrecy classification from their start.
+        # The current definition alone may have removed or renamed a secret.
+        historical_secret_names = getattr(run, "secret_variable_names", None)
+        if historical_secret_names is None:
+            # Older SDKs lack the snapshot, so secrecy is unknowable after an
+            # edit. Mask every value until the SDK is upgraded.
+            return [
+                {"name": name, "value": "••••"}
+                for name in run.result.variables
+            ]
+        secret_names = set(historical_secret_names) | {
             variable.name for variable in (self.script.variables if self.script else [])
             if variable.type == "secret"
         }

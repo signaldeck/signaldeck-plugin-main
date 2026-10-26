@@ -82,9 +82,25 @@ class ScriptProcessor(DisplayProcessor):
                 values[variable.name] = variable.default
         return values
 
-    def _script_variable_values(self, script, cmd_res, kwargs):
+    def _script_variable_values(self, script, cmd_res, kwargs, runs=()):
         if cmd_res is not None and getattr(cmd_res, "variables", None) is not None:
-            return dict(cmd_res.variables)
+            # A variable that was secret in the latest run must not be
+            # prefilled into a plain text input after editing its type.
+            secret_names = set()
+            if runs and runs[0].result is cmd_res:
+                historical_secret_names = getattr(runs[0], "secret_variable_names", None)
+                if historical_secret_names is None:
+                    return {}  # Older SDK: no reliable secrecy classification.
+                secret_names.update(historical_secret_names)
+            if script is not None:
+                secret_names.update(
+                    variable.name for variable in script.variables
+                    if variable.type == "secret"
+                )
+            return {
+                name: value for name, value in cmd_res.variables.items()
+                if name not in secret_names
+            }
         return self._script_variables_from_kwargs(script, kwargs)
 
     def _parse_commands(self, text):
@@ -173,7 +189,7 @@ class ScriptProcessor(DisplayProcessor):
             cmd_res = self.cmd.current.get(selected)
             runs = self.cmd.getScriptRuns(selected)
 
-        variable_values = self._script_variable_values(script, cmd_res, kwargs)
+        variable_values = self._script_variable_values(script, cmd_res, kwargs, runs)
 
         return (
             ScriptDisplayData(self.ctx, actionHash)
