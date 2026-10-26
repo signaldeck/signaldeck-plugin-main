@@ -15,6 +15,7 @@ class ScriptDisplayData(DisplayData):
         self.tab = "run"
         self.script = None
         self.cmd_res = None
+        self.runs = []
         self.variable_values = {}
         self.new_script_name = ""
 
@@ -37,6 +38,10 @@ class ScriptDisplayData(DisplayData):
 
     def withCmdResult(self, cmd_res):
         self.cmd_res = cmd_res
+        return self
+
+    def withRuns(self, runs):
+        self.runs = list(runs)
         return self
 
     def withVariableValues(self, values):
@@ -108,10 +113,31 @@ class ScriptDisplayData(DisplayData):
             for state in states
         ]
 
+    def getRunStates(self, run):
+        return [
+            {"date": state.get("date"), "msg": state.get("msg", "")}
+            for state in run.result.state[-20:]
+        ]
+
+    def getRunVariables(self, run):
+        secret_names = {
+            variable.name for variable in (self.script.variables if self.script else [])
+            if variable.type == "secret"
+        }
+        return [
+            {"name": name, "value": "••••" if name in secret_names else value}
+            for name, value in run.result.variables.items()
+        ]
+
     def formatDate(self, value):
         if value is None:
             return ""
         return value.strftime("%H:%M:%S")
+
+    def formatRunStart(self, value):
+        if value is None:
+            return ""
+        return value.strftime("%d.%m. %H:%M:%S")
 
     def buttons(self):
         buttons = {
@@ -174,15 +200,20 @@ class ScriptDisplayData(DisplayData):
                 "params": start_params,
                 "text": self.t("signaldeck_plugin_main.script.button.start"),
             }
-            buttons["stop"] = {
-                "name": "stop",
-                "params": {
-                    "stop": True,
-                    "tab": "run",
-                    "selected_script": self.selected_script,
-                },
-                "text": self.t("signaldeck_plugin_main.script.button.stop"),
-            }
+
+            for run in self.runs:
+                if run.status != "running":
+                    continue
+                buttons[f"stop_run_{run.run_id}"] = {
+                    "name": f"stop_run_{run.run_id}",
+                    "params": {
+                        "stop_run": True,
+                        "run_id": run.run_id,
+                        "tab": "run",
+                        "selected_script": self.selected_script,
+                    },
+                    "text": self.t("signaldeck_plugin_main.script.button.stop"),
+                }
 
         if self.script is not None:
             save_params = {

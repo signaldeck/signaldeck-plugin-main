@@ -57,25 +57,49 @@
         {% endif %}
 
         <div class="script-actions script-run-actions">
-            {% if displayData.cmd_res is none or displayData.cmd_res.isFinished() %}
             {{ renderButton("start", displayData) }}
-            {% else %}
-            {{ renderButton("stop", displayData) }}
-            {% endif %}
             <div class="script-refresh-action">
                 {{ renderButton("refresh", displayData) }}
             </div>
         </div>
 
-        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.output") }}</div>
-        <div class="script-output">
-            {% if not displayData.getStates() %}
-            <div class="script-empty">{{ t("signaldeck_plugin_main.script.no_output") }}</div>
+        <div class="script-section-title">{{ t("signaldeck_plugin_main.script.runs") }}</div>
+        <div class="script-run-list">
+            {% if not displayData.runs %}
+            <div class="script-empty">{{ t("signaldeck_plugin_main.script.no_runs") }}</div>
             {% endif %}
-            {% for state in displayData.getStates() %}
-            <div class="state-row">
-                <div class="state-log-date">{{ displayData.formatDate(state["date"]) }}</div>
-                <div class="state-log-msg">{{ state["msg"] }}</div>
+            {% for run in displayData.runs %}
+            <div class="script-run">
+                <details class="script-run-details" {{ "open" if loop.first else "" }}>
+                    <summary>
+                        <code title="{{ run.run_id }}">{{ run.run_id[:8] }}</code>
+                        <span>{{ displayData.formatRunStart(run.started_at) }}</span>
+                        <span class="script-run-status script-run-status-{{ run.status }}">
+                            {{ t("signaldeck_plugin_main.script.status." ~ run.status) }}
+                        </span>
+                    </summary>
+                    {% if displayData.getRunVariables(run) %}
+                    <div class="script-run-variables">
+                        {% for variable in displayData.getRunVariables(run) %}
+                        <span>{{ variable.name }}: <code>{{ variable.value }}</code></span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="script-output">
+                        {% if not displayData.getRunStates(run) %}
+                        <div class="script-empty">{{ t("signaldeck_plugin_main.script.no_output") }}</div>
+                        {% endif %}
+                        {% for state in displayData.getRunStates(run) %}
+                        <div class="state-row">
+                            <div class="state-log-date">{{ displayData.formatDate(state["date"]) }}</div>
+                            <div class="state-log-msg">{{ state["msg"] }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </details>
+                {% if run.status == "running" %}
+                {{ renderButton("stop_run_" ~ run.run_id, displayData) }}
+                {% endif %}
             </div>
             {% endfor %}
         </div>
