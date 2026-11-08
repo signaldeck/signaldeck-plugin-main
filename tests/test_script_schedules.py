@@ -1,4 +1,5 @@
 import unittest
+from importlib.resources import files
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -22,6 +23,17 @@ class ScheduleUiTests(unittest.TestCase):
         self.assertIn("schedule_delete_0123456789abcdef0123456789abcdef", buttons)
         self.assertEqual(buttons["schedule_new"]["params"]["schedule_cron"],
                          "@script_schedule_cron_new_abc123")
+
+    def test_pending_run_has_stop_button_in_template(self):
+        template = (
+            files("signaldeck_plugin_main")
+            .joinpath("templates/main/script.html")
+            .read_text(encoding="utf-8")
+        )
+        self.assertIn(
+            '{% if run.status in ["pending", "running"] %}', template
+        )
+        self.assertIn('renderButton("stop_run_" ~ run.run_id, displayData)', template)
 
     def test_script_processor_delegates_schedule_save(self):
         processor = ScriptProcessor.__new__(ScriptProcessor)
