@@ -152,6 +152,24 @@ class ScriptProcessor(DisplayProcessor):
             })
             self.cmd.saveScript(script)
 
+        if "save_schedule" in kwargs:
+            if not selected or self.cmd.getScript(selected) is None:
+                raise ValueError("Select an existing script first")
+            variables = json.loads(kwargs.get("schedule_variables_json") or "{}")
+            self.cmd.saveScriptSchedule(
+                selected,
+                str(kwargs.get("schedule_cron", "")).strip(),
+                schedule_id=kwargs.get("schedule_id") or None,
+                enabled=kwargs.get("schedule_enabled", True),
+                variables=variables,
+                overlap_policy=kwargs.get("schedule_overlap", "skip"),
+            )
+
+        if "delete_schedule" in kwargs:
+            if not selected:
+                raise ValueError("Select a script first")
+            self.cmd.deleteScriptSchedule(selected, kwargs["schedule_id"])
+
         if "save_alias" in kwargs:
             alias_name = str(kwargs.get("alias_name", "")).strip()
             alias_value = str(kwargs.get("alias_value", "")).strip()
@@ -186,10 +204,16 @@ class ScriptProcessor(DisplayProcessor):
                 tab = "edit"
         elif selected:
             script = self.cmd.getScript(selected)
-            cmd_res = self.cmd.current.get(selected)
             runs = self.cmd.getScriptRuns(selected)
+            cmd_res = runs[0].result if runs else self.cmd.current.get(selected)
 
         variable_values = self._script_variable_values(script, cmd_res, kwargs, runs)
+        schedules = (
+            self.cmd.listScriptSchedules(selected)
+            if selected and selected != NEW_SCRIPT
+            and callable(getattr(self.cmd, "listScriptSchedules", None))
+            else []
+        )
 
         return (
             ScriptDisplayData(self.ctx, actionHash)
@@ -199,12 +223,14 @@ class ScriptProcessor(DisplayProcessor):
             .withScript(script)
             .withCmdResult(cmd_res)
             .withRuns(runs)
+            .withSchedules(schedules)
             .withVariableValues(variable_values)
             .withNewScriptName(kwargs.get("new_script_name", ""))
         )
 
     def getBoolParams(self):
-        return ["start", "stop", "stop_run", "save", "save_alias"]
+        return ["start", "stop", "stop_run", "save", "save_alias",
+                "save_schedule", "delete_schedule", "schedule_enabled"]
 
     def getIntParams(self):
         return []
