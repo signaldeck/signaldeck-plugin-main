@@ -238,7 +238,7 @@ class ScriptDisplayData(DisplayData):
             }
 
             for run in self.runs:
-                if run.status != "running":
+                if run.status not in ("pending", "running"):
                     continue
                 buttons[f"stop_run_{run.run_id}"] = {
                     "name": f"stop_run_{run.run_id}",
