@@ -26,6 +26,7 @@
         {% endif %}
         {% if displayData.script is not none %}
         {{ renderButton("tab_edit", displayData) }}
+        {{ renderButton("tab_schedule", displayData) }}
         {% endif %}
         {{ renderButton("tab_aliases", displayData) }}
     </div>
@@ -121,6 +122,53 @@
 
         <div class="script-actions">
             {{ renderButton("save", displayData) }}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if displayData.tab == "schedule" and displayData.hasScript() %}
+    <div class="script-panel script-schedule-panel">
+        <p>{{ t("signaldeck_plugin_main.script.schedule.help") }}</p>
+        {% for schedule in displayData.schedules %}
+        <div class="script-schedule-entry">
+            <div class="script-section-title">{{ schedule.id[:8] }}</div>
+            <label for="{{ displayData.scheduleCronId(schedule.id) }}">{{ t("signaldeck_plugin_main.script.schedule.cron") }}</label>
+            <input id="{{ displayData.scheduleCronId(schedule.id) }}" type="text" value="{{ schedule.cron }}" placeholder="0 7 * * *" />
+            <label for="{{ displayData.scheduleEnabledId(schedule.id) }}">{{ t("signaldeck_plugin_main.script.schedule.enabled") }}</label>
+            <select id="{{ displayData.scheduleEnabledId(schedule.id) }}">
+                <option value="true" {{ 'selected' if schedule.enabled else '' }}>true</option>
+                <option value="false" {{ 'selected' if not schedule.enabled else '' }}>false</option>
+            </select>
+            <label for="{{ displayData.scheduleOverlapId(schedule.id) }}">{{ t("signaldeck_plugin_main.script.schedule.overlap") }}</label>
+            <select id="{{ displayData.scheduleOverlapId(schedule.id) }}">
+                <option value="skip" {{ 'selected' if schedule.overlap_policy == 'skip' else '' }}>skip</option>
+                <option value="allow" {{ 'selected' if schedule.overlap_policy == 'allow' else '' }}>allow</option>
+            </select>
+            <label for="{{ displayData.scheduleVariablesId(schedule.id) }}">{{ t("signaldeck_plugin_main.script.schedule.variables") }}</label>
+            <textarea id="{{ displayData.scheduleVariablesId(schedule.id) }}" rows="3">{{ schedule.variables | tojson(indent=2) }}</textarea>
+            <div class="script-actions">
+                {{ renderButton("schedule_save_" ~ schedule.id, displayData) }}
+                {{ renderButton("schedule_delete_" ~ schedule.id, displayData) }}
+            </div>
+        </div>
+        {% endfor %}
+        <div class="script-schedule-entry">
+            <div class="script-section-title">{{ t("signaldeck_plugin_main.script.schedule.new") }}</div>
+            <label for="{{ displayData.scheduleCronId('new') }}">{{ t("signaldeck_plugin_main.script.schedule.cron") }}</label>
+            <input id="{{ displayData.scheduleCronId('new') }}" type="text" value="" placeholder="0 7 * * *" />
+            <label for="{{ displayData.scheduleEnabledId('new') }}">{{ t("signaldeck_plugin_main.script.schedule.enabled") }}</label>
+            <select id="{{ displayData.scheduleEnabledId('new') }}">
+                <option value="true" selected>true</option>
+                <option value="false">false</option>
+            </select>
+            <label for="{{ displayData.scheduleOverlapId('new') }}">{{ t("signaldeck_plugin_main.script.schedule.overlap") }}</label>
+            <select id="{{ displayData.scheduleOverlapId('new') }}">
+                <option value="skip" selected>skip</option>
+                <option value="allow">allow</option>
+            </select>
+            <label for="{{ displayData.scheduleVariablesId('new') }}">{{ t("signaldeck_plugin_main.script.schedule.variables") }}</label>
+            <textarea id="{{ displayData.scheduleVariablesId('new') }}" rows="3">{}</textarea>
+            <div class="script-actions">{{ renderButton("schedule_new", displayData) }}</div>
         </div>
     </div>
     {% endif %}
