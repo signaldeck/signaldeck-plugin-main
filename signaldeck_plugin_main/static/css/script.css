@@ -195,3 +195,25 @@
 .script-help-table th {
     font-weight: 600;
 }
+
+.script-schedule-panel { max-width: 52rem; }
+.script-schedule-panel p { margin: 0; opacity: 0.8; }
+.script-schedule-entry {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(127, 127, 127, 0.3);
+    border-radius: 0.5rem;
+}
+.script-schedule-entry input,
+.script-schedule-entry select,
+.script-schedule-entry textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+.script-schedule-entry textarea {
+    font-family: monospace;
+    resize: vertical;
+}
+.script-run-status-pending { color: #9a7415; }
+.script-run-status-skipped { color: #777; }

@@ -16,6 +16,7 @@ class ScriptDisplayData(DisplayData):
         self.script = None
         self.cmd_res = None
         self.runs = []
+        self.schedules = []
         self.variable_values = {}
         self.new_script_name = ""
 
@@ -39,6 +40,22 @@ class ScriptDisplayData(DisplayData):
     def withCmdResult(self, cmd_res):
         self.cmd_res = cmd_res
         return self
+
+    def withSchedules(self, schedules):
+        self.schedules = list(schedules)
+        return self
+
+    def scheduleCronId(self, key):
+        return f"script_schedule_cron_{key}_{self.hash}"
+
+    def scheduleVariablesId(self, key):
+        return f"script_schedule_vars_{key}_{self.hash}"
+
+    def scheduleEnabledId(self, key):
+        return f"script_schedule_enabled_{key}_{self.hash}"
+
+    def scheduleOverlapId(self, key):
+        return f"script_schedule_overlap_{key}_{self.hash}"
 
     def withRuns(self, runs):
         self.runs = list(runs)
@@ -169,6 +186,15 @@ class ScriptDisplayData(DisplayData):
                 "text": self.t("signaldeck_plugin_main.script.tab.edit"),
                 "button_active_condition": ("tab", "edit"),
             },
+            "tab_schedule": {
+                "name": "tab_schedule",
+                "params": {
+                    "tab": "schedule",
+                    "selected_script": self.selected_script,
+                },
+                "text": self.t("signaldeck_plugin_main.script.tab.schedule"),
+                "button_active_condition": ("tab", "schedule"),
+            },
             "tab_aliases": {
                 "name": "tab_aliases",
                 "params": {
@@ -212,7 +238,7 @@ class ScriptDisplayData(DisplayData):
             }
 
             for run in self.runs:
-                if run.status != "running":
+                if run.status not in ("pending", "running"):
                     continue
                 buttons[f"stop_run_{run.run_id}"] = {
                     "name": f"stop_run_{run.run_id}",
@@ -223,6 +249,43 @@ class ScriptDisplayData(DisplayData):
                         "selected_script": self.selected_script,
                     },
                     "text": self.t("signaldeck_plugin_main.script.button.stop"),
+                }
+
+        if self.hasScript():
+            def schedule_params(key):
+                return {
+                    "save_schedule": True,
+                    "tab": "schedule",
+                    "selected_script": self.selected_script,
+                    "schedule_cron": f"@script_schedule_cron_{key}",
+                    "schedule_variables_json": f"@script_schedule_vars_{key}",
+                    "schedule_enabled": f"@script_schedule_enabled_{key}",
+                    "schedule_overlap": f"@script_schedule_overlap_{key}",
+                }
+
+            buttons["schedule_new"] = {
+                "name": "schedule_new",
+                "params": schedule_params("new"),
+                "text": self.t("signaldeck_plugin_main.script.schedule.add"),
+            }
+            for schedule in self.schedules:
+                key = schedule["id"]
+                update = schedule_params(key)
+                update["schedule_id"] = key
+                buttons[f"schedule_save_{key}"] = {
+                    "name": f"schedule_save_{key}",
+                    "params": update,
+                    "text": self.t("signaldeck_plugin_main.script.button.save"),
+                }
+                buttons[f"schedule_delete_{key}"] = {
+                    "name": f"schedule_delete_{key}",
+                    "params": {
+                        "delete_schedule": True,
+                        "schedule_id": key,
+                        "tab": "schedule",
+                        "selected_script": self.selected_script,
+                    },
+                    "text": self.t("signaldeck_plugin_main.script.schedule.delete"),
                 }
 
         if self.script is not None:
