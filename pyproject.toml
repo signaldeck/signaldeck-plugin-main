@@ -9,7 +9,7 @@ description = "Main plugin for SignalDeck"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-  "signaldeck-sdk>=0.6.3",
+  "signaldeck-sdk>=0.6.4",
   "signaldeck-ui>=0.6.0",
   "flask>=3.0",
   "paho-mqtt>=1.6.1",

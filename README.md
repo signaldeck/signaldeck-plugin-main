@@ -59,3 +59,9 @@ The original single-value result is retained for `fullDay=False`, for
 `first=True`/`last=True`, and if no `interval_minutes` is configured.
 Daily samples are deterministic for the same reference time and value.
 These data are *synthetic*, not sensor measurements.
+
+## HTTP record inputs and publishing
+
+Configure `signaldeck_plugin_main.processors.http.http_poller.HttpPoller` (GET, url, interval_seconds, timeout_seconds, optional headers) or `signaldeck_plugin_main.processors.http.http_receiver.HttpReceiver` (POST to /http/<name>, using export.http entries; optional allow_get). Both use the same mapping list: name, jsonPath, type (date, float, int, bool, string), optional date_format (ISO by default, ts for epoch seconds) and timezone. A date field is required; jsonPath "now" is explicitly opt-in. Records are passed to PersistData, with optional cacheSize, persist and export. By default duplicate and older timestamps are ignored; set ignore_old_records=false to override. Missing or ambiguous fields reject the entire record.
+
+Publisher types http and mqtt are registered through the plugin. Configure under export.publish: name, type, interval_seconds, values (output key to exported alias), config (HTTP url/headers/timeout_seconds or MQTT host/port/topic/qos/retain/username/password/tls/ca_certs/timeout_seconds). Dates serialize as ISO 8601 with offsets; naive dates use config.timezone (default Europe/Berlin). Export the source date explicitly to retain measurement time. HTTP receivers are unauthenticated at application level; use a trusted network or authenticated reverse proxy.

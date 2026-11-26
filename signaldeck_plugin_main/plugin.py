@@ -15,3 +15,7 @@ def register(app, ctx=None) -> None:
     ctx is optional here; blueprint registration doesn't need it.
     """
     app.register_blueprint(bp)
+    if ctx is not None and getattr(ctx, "publishers", None) is not None:
+        from .publishers import HttpPublisher, MqttPublisher
+        ctx.publishers.register("http", HttpPublisher)
+        ctx.publishers.register("mqtt", MqttPublisher)
