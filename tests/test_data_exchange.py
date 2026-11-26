@@ -4,6 +4,7 @@ import unittest
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
+from zoneinfo import ZoneInfo
 from signaldeck_sdk import ValueProvider
 from signaldeck_sdk.context import DateProvider
 from signaldeck_sdk.value_provider import HttpRequestError
@@ -39,6 +40,23 @@ class ReceiverTests(unittest.TestCase):
         self.assertEqual(len(receiver.memory["remote"]), 1)
         with self.assertRaises(HttpRequestError):
             receiver.processHTTPCall(power=10)
+
+    def test_now_mapping_across_fall_dst_transition(self):
+        zone = ZoneInfo("Europe/Berlin")
+        first = datetime(2026, 10, 25, 2, 59, tzinfo=zone, fold=0)
+        second = datetime(2026, 10, 25, 2, 0, tzinfo=zone, fold=1)
+        cfg = config()
+        cfg["mapping"][0]["jsonPath"] = "now"
+        clock = Mock()
+        clock.now.side_effect = [first, second, second, first]
+        receiver = HttpReceiver("remote", cfg, SimpleNamespace(date=clock), ValueProvider(), True)
+        self.assertTrue(receiver.processHTTPCall(power=1)["accepted"])
+        self.assertTrue(receiver.processHTTPCall(power=2)["accepted"])
+        self.assertFalse(receiver.processHTTPCall(power=3)["accepted"])
+        self.assertFalse(receiver.processHTTPCall(power=4)["accepted"])
+        self.assertEqual(receiver.getValue("power"), 2)
+        self.assertEqual(receiver.getValue("date").fold, 1)
+        self.assertEqual(len(receiver.memory["remote"]), 2)
 
     def test_optional_persistence(self):
         cfg = config()

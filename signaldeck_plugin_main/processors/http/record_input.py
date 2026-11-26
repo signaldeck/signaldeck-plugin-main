@@ -97,7 +97,7 @@ class RecordInput(PersistData, Processor):
                 if previous is not None:
                     if previous.tzinfo is None:
                         previous = previous.replace(tzinfo=ZoneInfo(self.config.get("timezone", "Europe/Berlin")))
-                    if record["date"] <= previous:
+                    if record["date"].astimezone(timezone.utc) <= previous.astimezone(timezone.utc):
                         return False
             self.save_data(record)
         return True
