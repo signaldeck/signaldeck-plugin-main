@@ -58,6 +58,36 @@ class ReceiverTests(unittest.TestCase):
         self.assertEqual(receiver.getValue("date").fold, 1)
         self.assertEqual(len(receiver.memory["remote"]), 2)
 
+    def test_optional_fields_and_hooks(self):
+        class DerivedReceiver(HttpReceiver):
+            def enrich_record(self, record):
+                record["double"] = record["power"] * 2
+                return record
+
+            def validate_record(self, record):
+                return super().validate_record(record) and record["power"] >= 0
+
+            def on_record_saved(self, record):
+                self.saved = record.copy()
+
+        cfg = config()
+        cfg["persist"] = []
+        cfg["mapping"].extend([
+            {"name": "optional", "type": "float", "jsonPath": "$.optional", "required": False},
+            {"name": "skip_invalid", "type": "float", "jsonPath": "$.skip_invalid", "required": False, "ignore_invalid": True},
+        ])
+        receiver = DerivedReceiver("remote", cfg, SimpleNamespace(date=DateProvider()), ValueProvider(), True)
+        self.assertIsNone(receiver.init_current_vals())
+        self.assertTrue(receiver.processHTTPCall(**PAYLOAD, skip_invalid="--")["accepted"])
+        self.assertEqual(receiver.saved["double"], 85)
+        self.assertNotIn("optional", receiver.saved)
+        self.assertNotIn("skip_invalid", receiver.saved)
+        self.assertEqual(receiver.memory["remote"][0]["double"], 85)
+        self.assertFalse(receiver.processHTTPCall(date="2026-01-02T00:00:00Z", power=-1)["accepted"])
+        self.assertEqual(len(receiver.memory["remote"]), 1)
+        with self.assertRaises(HttpRequestError):
+            receiver.processHTTPCall(**PAYLOAD, optional="bad")
+
     def test_optional_persistence(self):
         cfg = config()
         cfg["persist"] = [{"type": "db", "date_field": "date", "fields": [

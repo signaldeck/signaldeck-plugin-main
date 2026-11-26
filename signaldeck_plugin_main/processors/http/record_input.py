@@ -27,6 +27,12 @@ class RecordInput(PersistData, Processor):
                 raise ValueError("HTTP input uses date as the record timestamp")
         self.currVal = None
 
+    def init_current_vals(self, config=None):
+        config = self.config if config is None else config
+        if not config.get("persist"):
+            return None
+        return super().init_current_vals(config)
+
     def getValue(self, fieldName):
         with self._record_lock:
             return (self.currVal or {}).get(fieldName)
@@ -75,7 +81,7 @@ class RecordInput(PersistData, Processor):
             raise ValueError("Invalid boolean")
         return value
 
-    def ingest(self, payload):
+    def map_payload(self, payload):
         if not isinstance(payload, dict):
             raise ValueError("Expected a JSON object")
         record = {}
@@ -87,10 +93,36 @@ class RecordInput(PersistData, Processor):
                 value = self.ctx.date.now(zone)
             else:
                 matches = expression.find(payload)
+                if not matches and not field.get("required", True):
+                    continue
                 if len(matches) != 1:
                     raise ValueError(f"Expected one value for {field['name']}")
                 value = matches[0].value
-            record[field["name"]] = self._convert(value, field)
+            try:
+                record[field["name"]] = self._convert(value, field)
+            except (ValueError, TypeError, OverflowError):
+                if field.get("required", True) or not field.get("ignore_invalid", False):
+                    raise
+        return record
+
+    def enrich_record(self, record):
+        """Add derived fields before validation and persistence."""
+        return record
+
+    def validate_record(self, record):
+        stamp = record.get("date")
+        if not isinstance(stamp, datetime) or stamp.utcoffset() is None:
+            raise ValueError("Record must contain a timezone-aware date")
+        return True
+
+    def on_record_saved(self, record):
+        """Hook for accepted records (including those only kept in memory)."""
+        pass
+
+    def ingest(self, payload):
+        record = self.enrich_record(self.map_payload(payload))
+        if not self.validate_record(record):
+            return False
         with self._record_lock:
             if self.config.get("ignore_old_records", True) and self.currVal:
                 previous = self.currVal.get("date")
@@ -100,4 +132,5 @@ class RecordInput(PersistData, Processor):
                     if record["date"].astimezone(timezone.utc) <= previous.astimezone(timezone.utc):
                         return False
             self.save_data(record)
+            self.on_record_saved(record)
         return True
